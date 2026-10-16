@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Org AI — Оргструктура</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="preview.css" />
+  <style>
+    :root {
+      --primary: #008f95;
+      --bg: #eef2f4;
+      --text-main: #123a45;
+      --text-secondary: #41636a;
+      --border: #d7dee1;
+      --shell: #0b2a30;
+      --font-sans: 'Inter', 'Roboto', Arial, sans-serif;
+    }
+    [data-theme="dark"] {
+      --bg: #0b2a30;
+      --text-main: #cfdee1;
+      --text-secondary: #8ba0a6;
+    }
+    * { box-sizing: border-box; margin: 0; }
+    html, body, #root { height: 100%; }
+    body {
+      font-family: var(--font-sans);
+      font-size: 16px;
+      line-height: 1.5;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text-main);
+      -webkit-font-smoothing: antialiased;
+    }
+    #boot-error {
+      display: none;
+      padding: 24px;
+      color: #8b2a2a;
+      background: #f7dede;
+      font-family: monospace;
+      white-space: pre-wrap;
+      font-size: 13px;
+      max-height: 100vh;
+      overflow: auto;
+    }
+    #boot-loading {
+      padding: 40px;
+      text-align: center;
+      color: var(--primary);
+      font-size: 16px;
+      font-weight: 600;
+    }
+    #boot-loading small {
+      display: block;
+      margin-top: 8px;
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-weight: 400;
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(0,143,149,0.06); }
+    ::-webkit-scrollbar-thumb { background: rgba(0,143,149,0.32); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+  </style>
+</head>
+<body>
+  <div id="root"><div id="boot-loading">Загрузка Org AI…</div></div>
+  <pre id="boot-error"></pre>
+  <script>
+    function showBootError(msg) {
+      var el = document.getElementById("boot-error");
+      el.style.display = "block";
+      el.textContent = msg;
+      var ld = document.getElementById("boot-loading");
+      if (ld) ld.style.display = "none";
+    }
+    window.onerror = function(msg, url, line, col, err) {
+      showBootError((err && err.stack) || msg);
+    };
+    try {
+      var saved = localStorage.getItem("ds-theme");
+      if (saved === "dark" || saved === "light") document.documentElement.dataset.theme = saved;
+    } catch (e) {}
+  </script>
+  
+  <script src="vendor/react.production.min.js"></script>
+  <script src="vendor/react-dom.production.min.js"></script>
+  <script src="bundle.js?v=20261014sb"></script>
+  
+</body>
+</html>
