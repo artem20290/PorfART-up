@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Превью корпоративной соцсети — iPhone</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="main-wrap">
+      <div class="iphone-outer">
+        <div class="iphone-btn-mute"></div>
+        <div class="iphone-btn-vol-up"></div>
+        <div class="iphone-btn-vol-down"></div>
+        <div class="iphone-btn-power"></div>
+
+        <div class="iphone-bezel">
+          <div class="iphone-inner">
+            <div class="iphone-screen">
+              <!-- Status bar -->
+              <div class="status-bar">
+                <div class="status-time">9:41</div>
+                <div class="dynamic-island"><div class="dynamic-island-lens"></div></div>
+                <div class="status-icons">
+                  <svg width="18" height="12" viewBox="0 0 18 12" fill="none"><rect x="0" y="8" width="3" height="4" rx="1" fill="var(--bg-text-text)"/><rect x="5" y="5.5" width="3" height="6.5" rx="1" fill="var(--bg-text-text)"/><rect x="10" y="3" width="3" height="9" rx="1" fill="var(--bg-text-text)"/><rect x="15" y="0" width="3" height="12" rx="1" fill="var(--bg-text-text)"/></svg>
+                  <svg width="17" height="12" viewBox="0 0 17 12" fill="none"><path d="M8.5 2.5c2.5 0 4.8.95 6.55 2.5l-1.4 1.45C12.28 5.25 10.48 4.5 8.5 4.5s-3.78.75-5.15 1.95L1.95 5C3.7 3.45 6 2.5 8.5 2.5z" fill="var(--bg-text-text)"/><path d="M8.5 5.6c1.55 0 2.95.55 4.05 1.45l-1.35 1.4C10.5 7.85 9.55 7.5 8.5 7.5s-2 .35-2.7.95L4.45 7.05C5.55 6.15 6.95 5.6 8.5 5.6z" fill="var(--bg-text-text)"/><circle cx="8.5" cy="10.6" r="1.4" fill="var(--bg-text-text)"/></svg>
+                  <div style="display:flex;align-items:center"><div style="width:25px;height:12.5px;border-radius:4px;border:1px solid var(--bg-text-text);padding:2px"><div style="width:100%;height:100%;border-radius:2px;background:var(--bg-text-text)"></div></div></div>
+                </div>
+              </div>
+
+              <!-- Nav bar -->
+              <nav class="nav-bar">
+                <div></div>
+                <div class="nav-right">
+                  <button class="nav-btn" id="btn-qr" aria-label="QR">
+                    <img class="nav-icon" src="assets/m_verh/%D0%9F%D0%BE%D0%BB%D1%8C%D0%B7%D0%BE%D0%B2%D0%B0%D1%82%D0%B5%D0%BB%D1%8C/Navigation%20Bar/qr.svg" alt="" width="24" height="24">
+                  </button>
+                  <button class="nav-btn" aria-label="Ссылка">
+                    <img class="nav-icon" src="assets/m_verh/%D0%9F%D0%BE%D0%BB%D1%8C%D0%B7%D0%BE%D0%B2%D0%B0%D1%82%D0%B5%D0%BB%D1%8C/Navigation%20Bar/link.svg" alt="" width="24" height="24">
+                  </button>
+                </div>
+              </nav>
+
+              <!-- Screen content (rendered by JS) -->
+              <div class="screen-content iphone-scroll" id="screen-content"></div>
+
+              <!-- Bottom nav (rendered by JS) -->
+              <nav class="bottom-nav" id="bottom-nav"></nav>
+
+              <div class="home-indicator"><div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <div id="help-modal-root"></div>
+    <script src="app.js"></script>
+  </body>
+</html>
