@@ -1,0 +1,1362 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Крецкий Артём — продуктовый дизайнер</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Urbanist:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #ffffff;
+      --ink: #171717;
+      --muted: #344054;
+      --orange: #fd853a;
+      --orange-soft: #ffebdc;
+      --dark: #171717;
+      --gray: #e4e7ec;
+      --white: #fff;
+      --container: 1298px;
+      --pad: clamp(20px, 5vw, 71px);
+      --radius-pill: 60px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: Outfit, system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
+    }
+    .hidden { display: none !important; }
+    .container {
+      width: min(var(--container), 100%);
+      margin: 0 auto;
+      padding-left: var(--pad);
+      padding-right: var(--pad);
+    }
+    a { color: inherit; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+      html { scroll-behavior: auto; }
+    }
+
+    .pf-reveal {
+      opacity: 0;
+      transform: translateY(36px);
+      transition:
+        opacity 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+        transform 0.85s cubic-bezier(0.22, 1, 0.36, 1);
+      will-change: opacity, transform;
+    }
+    .pf-reveal.is-in {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .pf-reveal-delay-1 { transition-delay: 0.08s; }
+    .pf-reveal-delay-2 { transition-delay: 0.18s; }
+    .pf-reveal-delay-3 { transition-delay: 0.28s; }
+
+    .pf-btn-orange {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: var(--orange);
+      color: #fff;
+      border: 0.5px solid #d0d5dd;
+      border-radius: var(--radius-pill);
+      padding: 14px 24px;
+      font-size: 20px;
+      font-weight: 500;
+      text-decoration: none;
+      cursor: pointer;
+      font-family: inherit;
+      white-space: nowrap;
+      transition:
+        transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+        box-shadow 0.35s ease,
+        background 0.3s ease,
+        filter 0.3s ease;
+      box-shadow: 0 8px 24px rgba(253, 133, 58, 0.25);
+    }
+    .pf-btn-orange:hover {
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 14px 32px rgba(253, 133, 58, 0.4);
+      filter: brightness(1.05);
+    }
+    .pf-btn-orange:active {
+      transform: translateY(-1px) scale(0.98);
+    }
+    .pf-btn-ghost {
+      flex: 1;
+      text-align: center;
+      color: #fff;
+      text-decoration: none;
+      font-size: 20px;
+      font-weight: 300;
+      padding: 14px 16px;
+      text-shadow: 0 1px 8px rgba(0,0,0,0.35);
+      border-radius: var(--radius-pill);
+      transition: background 0.3s ease, transform 0.3s ease, color 0.3s ease, text-shadow 0.3s ease;
+    }
+    .pf-btn-ghost:hover {
+      background: rgba(255,255,255,0.12);
+      transform: translateY(-1px);
+      color: var(--orange);
+      text-shadow: none;
+    }
+
+    /* Nav removed */
+
+    .pf-logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: #fff;
+      font-family: Urbanist, sans-serif;
+      font-weight: 700;
+      font-size: 22px;
+      letter-spacing: -0.02em;
+    }
+    .pf-logo-mark {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: var(--orange);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    /* Hero */
+    .pf-hero {
+      position: relative;
+      padding: 48px 0 48px;
+      overflow: hidden;
+    }
+    .pf-hero-top {
+      text-align: center;
+      position: relative;
+      z-index: 2;
+      padding-top: 24px;
+    }
+    .pf-hello {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1.3px solid var(--ink);
+      background: rgba(255,255,255,0.1);
+      border-radius: 40px;
+      padding: 10px 24px;
+      font-size: 18px;
+      font-weight: 500;
+      margin-bottom: 12px;
+      position: relative;
+      animation: pf-fade-up 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+    .pf-hello::after {
+      content: "";
+      position: absolute;
+      right: -18px;
+      top: -14px;
+      width: 28px;
+      height: 28px;
+      background:
+        radial-gradient(circle at 30% 40%, var(--orange) 0 3px, transparent 4px),
+        radial-gradient(circle at 70% 30%, var(--orange) 0 2.5px, transparent 3.5px),
+        radial-gradient(circle at 50% 75%, var(--orange) 0 2px, transparent 3px);
+      animation: pf-sparkle 2.4s ease-in-out infinite;
+    }
+    .pf-hero-title {
+      font-family: Urbanist, sans-serif;
+      font-weight: 600;
+      font-size: clamp(2.75rem, 7vw, 5.5rem);
+      line-height: 1;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      animation: pf-fade-up 1s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both;
+    }
+    .pf-hero-title em {
+      font-style: normal;
+      color: var(--orange);
+      display: inline-block;
+      animation: pf-soft-pulse 3.5s ease-in-out infinite 1.2s;
+    }
+    .pf-hero-stage {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      min-height: 440px;
+      margin-top: -24px;
+      padding-bottom: 40px;
+    }
+    .pf-hero-arch {
+      position: absolute;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(640px, 78vw);
+      height: min(340px, 42vw);
+      background: var(--orange-soft);
+      border-radius: 999px 999px 0 0;
+      z-index: 0;
+      animation: pf-arch-in 1.2s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
+      transform-origin: bottom center;
+    }
+    .pf-hero-photo {
+      position: relative;
+      z-index: 1;
+      width: min(360px, 58vw);
+      height: min(440px, 68vw);
+      object-fit: contain;
+      object-position: bottom center;
+      animation: pf-photo-in 1.15s cubic-bezier(0.22, 1, 0.36, 1) 0.25s both;
+      filter: drop-shadow(0 18px 32px rgba(23, 23, 23, 0.14));
+      margin-bottom: 0;
+      align-self: flex-end;
+    }
+    .pf-hero-cta {
+      position: absolute;
+      z-index: 3;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.12);
+      backdrop-filter: blur(12px);
+      border-radius: 50px;
+      padding: 10px;
+      width: min(367px, 90vw);
+      animation: pf-cta-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.55s both;
+      transition: box-shadow 0.4s ease, background 0.4s ease;
+    }
+    .pf-hero-cta:hover {
+      background: rgba(255,255,255,0.18);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+    }
+    .pf-hero-cta--links {
+      width: auto;
+      gap: 4px;
+    }
+    .pf-hero-cta--links .pf-btn-orange {
+      font-size: 18px;
+      padding: 12px 20px;
+    }
+    .pf-hero-cta--links .pf-btn-ghost {
+      flex: none;
+      font-size: 18px;
+      padding: 12px 14px;
+      white-space: nowrap;
+    }
+    @media (max-width: 480px) {
+      .pf-hero-cta--links .pf-btn-orange {
+        font-size: 15px;
+        padding: 10px 14px;
+      }
+      .pf-hero-cta--links .pf-btn-ghost {
+        font-size: 15px;
+        padding: 10px 8px;
+      }
+    }
+    .pf-exp-wrap {
+      padding: 0 var(--pad);
+    }
+    .pf-exp {
+      list-style: none;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+      margin: 8px 0 0;
+      animation: pf-fade-up 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.7s both;
+    }
+    .pf-exp-card {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 16px 18px;
+      border: 1px solid var(--gray);
+      border-radius: 20px;
+      background: #fff;
+      transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .pf-exp-card:hover {
+      transform: translateY(-3px);
+      border-color: var(--orange);
+      box-shadow: 0 10px 24px rgba(253, 133, 58, 0.15);
+    }
+    .pf-exp-card--current {
+      background: var(--orange-soft);
+      border-color: var(--orange-soft);
+    }
+    .pf-exp-years {
+      font-size: 14px;
+      color: var(--orange);
+      font-weight: 500;
+    }
+    .pf-exp-company {
+      font-family: system-ui, "Segoe UI", sans-serif;
+      font-size: 17px;
+      font-weight: 700;
+      line-height: 1.2;
+      color: var(--ink);
+    }
+    .pf-exp-industry {
+      font-size: 13px;
+      line-height: 1.35;
+      color: #667085;
+    }
+    .pf-exp-role {
+      margin-top: auto;
+      padding-top: 6px;
+      font-size: 13px;
+      line-height: 1.35;
+      font-weight: 500;
+      color: var(--ink);
+    }
+    .pf-stack {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 10px 14px;
+      margin-top: 48px;
+      animation: pf-fade-up 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.8s both;
+    }
+    .pf-stack-label {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--ink);
+    }
+    .pf-stack-list {
+      list-style: none;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+    }
+    .pf-stack-list li {
+      padding: 8px 16px;
+      border-radius: var(--radius-pill);
+      background: var(--orange-soft);
+      color: var(--ink);
+      font-size: 15px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    @media (max-width: 900px) {
+      .pf-exp { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    @media (max-width: 560px) {
+      .pf-exp { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+      .pf-exp-card { padding: 12px 14px; border-radius: 16px; }
+      .pf-exp-company { font-size: 16px; }
+    }
+    .pf-hero-side {
+      position: absolute;
+      z-index: 2;
+      max-width: 260px;
+    }
+    .pf-hero-side.left {
+      left: var(--pad);
+      top: 55%;
+      animation: pf-side-left 1s cubic-bezier(0.22, 1, 0.36, 1) 0.45s both;
+    }
+    .pf-hero-side.right {
+      right: var(--pad);
+      top: 55%;
+      text-align: right;
+      animation: pf-side-right 1s cubic-bezier(0.22, 1, 0.36, 1) 0.5s both;
+    }
+    .pf-quote-mark {
+      font-size: 48px;
+      line-height: 1;
+      color: #475467;
+      font-family: Georgia, serif;
+      margin-bottom: 12px;
+    }
+    .pf-quote-text {
+      font-size: 18px;
+      line-height: 1.4;
+      color: var(--muted);
+      font-weight: 500;
+      letter-spacing: -0.3px;
+    }
+    .pf-stars { color: var(--orange); font-size: 22px; letter-spacing: 2px; margin-bottom: 12px; }
+    .pf-years {
+      font-family: Urbanist, sans-serif;
+      font-weight: 700;
+      font-size: clamp(2rem, 4vw, 2.9rem);
+      letter-spacing: -0.02em;
+    }
+    .pf-years span {
+      display: block;
+      font-family: Outfit, sans-serif;
+      font-weight: 400;
+      font-size: 18px;
+      margin-top: 4px;
+    }
+    @media (max-width: 900px) {
+      .pf-hero-side { display: none; }
+      .pf-hero-stage { min-height: 360px; margin-top: 0; }
+      .pf-hero-photo {
+        width: min(280px, 70vw);
+        height: min(360px, 78vw);
+      }
+      .pf-hero-arch {
+        width: min(480px, 88vw);
+        height: min(260px, 52vw);
+      }
+    }
+
+    /* Sections */
+    .pf-section { padding: 80px 0; }
+    .pf-section-title {
+      font-family: Urbanist, sans-serif;
+      font-weight: 500;
+      font-size: clamp(2rem, 4vw, 3rem);
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+    }
+    .pf-section-title em { font-style: normal; color: var(--orange); }
+
+    /* Services */
+    .pf-services {
+      margin: 0 var(--pad);
+      border-radius: 50px;
+      background: var(--dark);
+      color: #fff;
+      padding: clamp(24px, 3vw, 36px) clamp(24px, 5vw, 71px) clamp(40px, 6vw, 72px);
+      position: relative;
+      overflow: hidden;
+    }
+    .pf-services::before {
+      content: "";
+      position: absolute;
+      width: 480px;
+      height: 480px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(253,133,58,0.45), transparent 70%);
+      right: -80px;
+      top: 120px;
+      filter: blur(20px);
+      pointer-events: none;
+      animation: pf-glow 8s ease-in-out infinite;
+    }
+    .pf-services-head {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-end;
+      margin-bottom: 20px;
+      position: relative;
+      z-index: 1;
+    }
+    .pf-services-head p {
+      max-width: 36rem;
+      font-size: 18px;
+      line-height: 1.5;
+      color: rgba(255,255,255,0.9);
+    }
+    .pf-svc-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      position: relative;
+      z-index: 1;
+    }
+    @media (max-width: 900px) {
+      .pf-svc-grid { grid-template-columns: 1fr; }
+    }
+    .pf-svc-card {
+      position: relative;
+      border-radius: 28px;
+      border: 1px solid rgba(255,255,255,0.25);
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(10px);
+      padding: 28px 24px 24px;
+      min-height: 360px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .pf-svc-card h3 {
+      font-size: 28px;
+      font-weight: 500;
+      margin-bottom: 16px;
+      letter-spacing: -0.02em;
+    }
+    .pf-svc-card hr {
+      border: 0;
+      border-top: 1px solid rgba(255,255,255,0.25);
+      margin-bottom: 20px;
+    }
+    .pf-svc-preview {
+      flex: 1;
+      border-radius: 24px;
+      background: #2a2a2a center/cover no-repeat;
+      min-height: 200px;
+    }
+    .pf-svc-go {
+      position: absolute;
+      right: 18px;
+      bottom: 18px;
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: #1d2939;
+      border: 0;
+      color: #fff;
+      font-size: 28px;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      text-decoration: none;
+    }
+    .pf-dots {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 36px;
+    }
+    .pf-dots span {
+      width: 14px;
+      height: 14px;
+      border-radius: 20px;
+      background: #e4e7ec;
+    }
+    .pf-dots span.is-on {
+      width: 56px;
+      background: var(--orange);
+    }
+
+    /* Experience */
+    .pf-exp-title { text-align: center; margin-bottom: 56px; }
+    .pf-timeline {
+      display: grid;
+      grid-template-columns: 1fr 48px 1fr;
+      gap: 24px 32px;
+      align-items: start;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .pf-tl-line {
+      grid-column: 2;
+      grid-row: 1 / span 3;
+      justify-self: center;
+      width: 2px;
+      background: #d0d5dd;
+      height: 100%;
+      position: relative;
+      min-height: 360px;
+    }
+    .pf-tl-dots {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .pf-tl-dots i {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 6px solid var(--orange-soft);
+      background: var(--orange);
+      display: block;
+    }
+    .pf-tl-left, .pf-tl-right {
+      display: flex;
+      flex-direction: column;
+      gap: 64px;
+    }
+    .pf-tl-left h3, .pf-tl-right h3 {
+      font-size: 28px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .pf-tl-left .date, .pf-tl-right .meta {
+      color: var(--muted);
+      font-size: 16px;
+    }
+    .pf-tl-right p {
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.5;
+      margin-top: 8px;
+    }
+    @media (max-width: 800px) {
+      .pf-timeline { grid-template-columns: 1fr; }
+      .pf-tl-line { display: none; }
+      .pf-tl-left, .pf-tl-right { gap: 32px; }
+    }
+
+    /* Why hire */
+    .pf-why {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: center;
+    }
+    @media (max-width: 900px) {
+      .pf-why { grid-template-columns: 1fr; }
+    }
+    .pf-why-photo {
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      border-radius: 40px;
+      background: var(--orange-soft);
+    }
+    .pf-why h2 { margin-bottom: 20px; }
+    .pf-why > div > p {
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.5;
+      max-width: 28rem;
+      margin-bottom: 32px;
+    }
+    .pf-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+    .pf-stats strong {
+      display: block;
+      font-family: Urbanist, sans-serif;
+      font-size: 40px;
+      font-weight: 700;
+    }
+    .pf-stats span { color: var(--muted); font-size: 16px; }
+
+    /* Portfolio */
+    .pf-port-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 24px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .pf-port-head h2 { max-width: 22ch; }
+    .pf-works-carousel { user-select: none; perspective: 1400px; }
+    .pf-works-viewport {
+      position: relative;
+      height: clamp(540px, 68vw, 640px);
+      overflow: hidden;
+      cursor: grab;
+      touch-action: pan-y;
+      transform-style: preserve-3d;
+      perspective: 1200px;
+    }
+    .pf-works-carousel.is-dragging .pf-works-viewport { cursor: grabbing; }
+    .pf-works-track {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 100%;
+      min-height: clamp(540px, 68vw, 640px);
+      display: block;
+      transform-style: preserve-3d;
+      transition: none;
+    }
+    .pf-works-carousel.is-dragging .pf-works-track { transition: none; }
+    .pf-work-shell {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: min(340px, 72vw);
+      margin: 0;
+      transform-style: preserve-3d;
+      will-change: transform, opacity;
+      transition: opacity 0.35s ease;
+    }
+    .pf-work-slide {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 18px;
+      overflow: hidden;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 12px 28px rgba(0,0,0,0.35);
+    }
+    .pf-work-card {
+      border-radius: 0;
+      overflow: hidden;
+      background: #2a2a2a;
+      border: 0;
+      padding: 0;
+      width: 100%;
+      cursor: pointer;
+      text-align: left;
+      font: inherit;
+      color: inherit;
+      display: block;
+      transition: transform 0.4s ease;
+    }
+    .pf-work-shell.is-front .pf-work-card:hover {
+      transform: scale(1.02);
+    }
+    .pf-work-img {
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      object-fit: cover;
+      display: block;
+      background: #2a2a2a;
+      pointer-events: none;
+    }
+    .pf-work-body {
+      padding: 12px 14px 14px;
+      opacity: 0;
+      max-height: 0;
+      overflow: hidden;
+      transition: opacity 0.35s ease, max-height 0.35s ease, padding 0.35s ease;
+    }
+    .pf-work-shell.is-front .pf-work-body {
+      opacity: 1;
+      max-height: 210px;
+      padding: 12px 14px 14px;
+    }
+    .pf-work-body h3 {
+      font-family: Urbanist, sans-serif;
+      font-size: clamp(1.05rem, 1.9vw, 1.3rem);
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: #fff;
+      letter-spacing: -0.02em;
+    }
+    .pf-work-body p {
+      color: rgba(255,255,255,0.72);
+      font-size: 13px;
+      line-height: 1.45;
+      margin-bottom: 10px;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .pf-work-body .pf-btn-orange {
+      padding: 6px 12px;
+      font-size: 12px;
+      gap: 4px;
+      box-shadow: 0 4px 12px rgba(253, 133, 58, 0.25);
+    }
+    .pf-work-body .pf-btn-orange,
+    .pf-work-card {
+      position: relative;
+      z-index: 2;
+      pointer-events: auto;
+    }
+    .pf-work-shell:not(.is-front) {
+      pointer-events: none;
+    }
+    .pf-work-shell.is-front {
+      pointer-events: auto;
+    }
+    .pf-work-meta { display: none; }
+    .pf-works-hint {
+      text-align: center;
+      color: rgba(255,255,255,0.45);
+      font-size: 13px;
+      margin-top: 8px;
+    }
+    @media (max-width: 720px) {
+      .pf-port-head {
+        align-items: flex-start;
+        margin-bottom: 12px;
+      }
+      .pf-works-carousel.is-mobile-works {
+        perspective: none;
+      }
+      .pf-works-carousel.is-mobile-works .pf-works-viewport {
+        height: auto;
+        min-height: 0;
+        overflow-x: auto;
+        overflow-y: visible;
+        perspective: none;
+        transform-style: flat;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        touch-action: pan-x;
+        cursor: default;
+        scrollbar-width: none;
+        padding: 4px 0 8px;
+      }
+      .pf-works-carousel.is-mobile-works .pf-works-viewport::-webkit-scrollbar {
+        display: none;
+      }
+      .pf-works-carousel.is-mobile-works .pf-works-track {
+        position: relative;
+        left: auto;
+        right: auto;
+        top: auto;
+        display: flex;
+        align-items: stretch;
+        gap: 14px;
+        height: auto;
+        min-height: 0;
+        padding: 4px calc((100% - min(86vw, 340px)) / 2);
+        transform: none !important;
+        transform-style: flat;
+        will-change: auto;
+      }
+      .pf-works-carousel.is-mobile-works .pf-work-shell {
+        position: relative;
+        left: auto;
+        top: auto;
+        flex: 0 0 min(86vw, 340px);
+        width: min(86vw, 340px);
+        margin: 0;
+        transform: none !important;
+        opacity: 1 !important;
+        z-index: 1 !important;
+        scroll-snap-align: center;
+        pointer-events: auto !important;
+        will-change: auto;
+      }
+      .pf-works-carousel.is-mobile-works .pf-work-slide {
+        height: 100%;
+      }
+      .pf-works-carousel.is-mobile-works .pf-work-body {
+        opacity: 1 !important;
+        max-height: none !important;
+        overflow: visible;
+        padding: 12px 14px 14px !important;
+      }
+      .pf-works-carousel.is-mobile-works .pf-work-body p {
+        -webkit-line-clamp: 4;
+      }
+      .pf-works-carousel.is-mobile-works .pf-works-hint {
+        margin-top: 12px;
+      }
+      .pf-works-carousel.is-mobile-works .pf-works-controls {
+        margin-top: 16px;
+      }
+      .pf-section { padding: 56px 0; }
+      .pf-services {
+        margin: 0;
+        border-radius: 28px;
+        padding: 24px 18px 36px;
+      }
+    }
+    .pf-filters {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      margin: 28px 0 36px;
+    }
+    .pf-filter {
+      border: 1px solid var(--ink);
+      background: transparent;
+      border-radius: var(--radius-pill);
+      padding: 12px 22px;
+      font: inherit;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .pf-filter.is-on {
+      background: var(--orange);
+      border-color: var(--orange);
+      color: #fff;
+    }
+    .pf-works-controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 28px;
+    }
+    .pf-works-arrow {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      border: 1px solid #d0d5dd;
+      background: #fff;
+      cursor: pointer;
+      font-size: 22px;
+      transition: transform 0.3s ease, background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    }
+    .pf-works-arrow:hover {
+      background: var(--ink);
+      color: #fff;
+      transform: scale(1.08);
+    }
+    .pf-works-arrow:disabled { opacity: 0.35; pointer-events: none; }
+    .pf-works-dots { display: flex; gap: 8px; align-items: center; }
+    .pf-works-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 20px;
+      border: 0;
+      background: #d0d5dd;
+      cursor: pointer;
+      padding: 0;
+      transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1), background 0.3s ease;
+    }
+    .pf-works-dot.is-active { width: 48px; background: var(--orange); }
+    .pf-services .pf-port-head h2 { color: #fff; }
+    .pf-services .pf-works-arrow {
+      border-color: rgba(255,255,255,0.25);
+      background: transparent;
+      color: #fff;
+    }
+    .pf-services .pf-works-arrow:hover {
+      background: var(--orange);
+      border-color: var(--orange);
+      color: #fff;
+    }
+    .pf-services .pf-works-dot { background: rgba(255,255,255,0.28); }
+    .pf-services .pf-works-dot.is-active { background: var(--orange); }
+    .pf-services .pf-btn-orange { flex-shrink: 0; }
+
+    /* Discuss CTA */
+    .pf-discuss {
+      text-align: center;
+      padding: 80px 0;
+    }
+    .pf-discuss h2 {
+      font-family: Urbanist, sans-serif;
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 600;
+      max-width: 18ch;
+      margin: 0 auto 36px;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+    }
+    .pf-discuss h2 em { font-style: normal; color: var(--orange); }
+    .pf-mail-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      max-width: 832px;
+      margin: 0 auto;
+      background: #f2f4f7;
+      border-radius: 50px;
+      padding: 12px 12px 12px 20px;
+      transition: box-shadow 0.4s ease, transform 0.4s ease;
+    }
+    .pf-mail-bar:focus-within {
+      box-shadow: 0 12px 40px rgba(253, 133, 58, 0.18);
+      transform: translateY(-2px);
+    }
+    .pf-mail-bar input {
+      flex: 1;
+      border: 0;
+      background: transparent;
+      font: inherit;
+      font-size: 16px;
+      outline: none;
+      min-width: 0;
+    }
+    .pf-contacts {
+      list-style: none;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .pf-contact-card {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      height: 100%;
+      padding: 24px 28px;
+      border-radius: 28px;
+      background: #f2f4f7;
+      text-decoration: none;
+      transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+    }
+    .pf-contact-card:hover {
+      transform: translateY(-3px);
+      background: var(--orange-soft);
+      box-shadow: 0 12px 32px rgba(253, 133, 58, 0.18);
+    }
+    .pf-contact-label {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--orange);
+    }
+    .pf-contact-value {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--ink);
+      overflow-wrap: anywhere;
+    }
+    @media (max-width: 900px) {
+      .pf-contacts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 520px) {
+      .pf-contacts { grid-template-columns: 1fr; }
+    }
+    .pf-trust {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 28px;
+      margin-top: 20px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    /* Footer */
+    .pf-footer {
+      background: var(--dark);
+      color: #fff;
+      border-radius: 50px 50px 0 0;
+      padding: 64px var(--pad) 32px;
+      margin-top: 40px;
+    }
+    .pf-footer-grid {
+      display: grid;
+      grid-template-columns: 1.6fr 1fr 1.2fr;
+      gap: 32px;
+      padding: 0 0 32px;
+      border-bottom: 1px solid rgba(255,255,255,0.15);
+    }
+    @media (max-width: 900px) {
+      .pf-footer-grid { grid-template-columns: 1fr 1fr; }
+    }
+    .pf-footer p { color: rgba(255,255,255,0.7); font-size: 14px; line-height: 1.5; margin-top: 16px; }
+    .pf-footer h4 { font-size: 16px; margin-bottom: 16px; }
+    .pf-footer ul { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+    .pf-footer a { text-decoration: none; color: rgba(255,255,255,0.8); font-size: 14px; transition: color 0.25s ease, transform 0.25s ease; display: inline-block; }
+    .pf-footer a:hover { color: var(--orange); transform: translateX(3px); }
+    .pf-footer-bottom {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding-top: 24px;
+      font-size: 14px;
+      color: rgba(255,255,255,0.7);
+    }
+
+    /* Detail */
+    #detail { min-height: 100vh; background: #fff; }
+    .detail-header {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--gray);
+    }
+    .detail-header .container {
+      display: flex; justify-content: space-between; align-items: center;
+      padding-top: 18px; padding-bottom: 18px;
+    }
+    .back-btn {
+      display: flex; align-items: center; gap: 8px;
+      background: none; border: none; color: var(--muted);
+      font-size: 14px; cursor: pointer; font-family: inherit;
+    }
+    .back-icon {
+      width: 36px; height: 36px; border-radius: 50%;
+      border: 1px solid var(--gray);
+      display: grid; place-items: center;
+    }
+    .back-btn:hover .back-icon { background: var(--ink); color: #fff; }
+    .detail-meta { font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+    .detail-hero { padding: 32px 0 16px; }
+    .detail-hero h1 {
+      font-family: Urbanist, sans-serif;
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 700;
+    }
+    .info-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px 48px;
+      padding: 8px 0 40px;
+    }
+    .info-grid > div {
+      min-width: 0;
+    }
+    .info-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); margin-bottom: 8px; }
+    .info-val { font-size: 1.15rem; font-weight: 600; }
+    .tags { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tag {
+      padding: 6px 12px; border-radius: 999px;
+      border: 1px solid var(--gray); font-size: 12px;
+    }
+    .desc-block {
+      max-width: 56rem; margin: 0 0 40px;
+      padding: 28px 32px; border-radius: 24px;
+      background: #f9fafb; border: 1px solid var(--gray);
+    }
+    .section-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--muted); margin-bottom: 12px; }
+    .desc-text { font-size: 15px; line-height: 1.65; color: var(--muted); }
+    .desc-text + .desc-text { margin-top: 1rem; }
+    .project-preview { width: 100%; min-height: 100vh; background: #f2f4f7; }
+    .project-preview-inner { position: relative; width: 100%; min-height: 100vh; }
+    .project-preview iframe { width: 100%; height: 100vh; border: none; display: block; }
+    .project-fullscreen-btn {
+      position: absolute; top: 16px; right: 16px; z-index: 20;
+      width: 44px; height: 44px; border-radius: 12px;
+      border: 1px solid var(--gray); background: #fff; cursor: pointer;
+      display: grid; place-items: center;
+    }
+    .project-preview-placeholder {
+      min-height: 60vh; display: grid; place-items: center;
+      padding: 48px; text-align: center; color: var(--muted);
+    }
+
+    /* Legacy class aliases used by JS carousel markup */
+    .ryn-work-shell { }
+    .ryn-works-carousel { }
+
+    @keyframes pf-fade-up {
+      from { opacity: 0; transform: translateY(28px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pf-arch-in {
+      from { opacity: 0; transform: translateX(-50%) scaleX(0.72) scaleY(0.85); }
+      to { opacity: 1; transform: translateX(-50%) scaleX(1) scaleY(1); }
+    }
+    @keyframes pf-photo-in {
+      from { opacity: 0; transform: translateY(48px) scale(0.96); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes pf-cta-in {
+      from { opacity: 0; transform: translateX(-50%) translateY(24px); }
+      to { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+    @keyframes pf-side-left {
+      from { opacity: 0; transform: translateX(-28px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes pf-side-right {
+      from { opacity: 0; transform: translateX(28px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes pf-sparkle {
+      0%, 100% { opacity: 0.55; transform: scale(0.9) rotate(0deg); }
+      50% { opacity: 1; transform: scale(1.15) rotate(8deg); }
+    }
+    @keyframes pf-soft-pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+    }
+    @keyframes pf-glow {
+      0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.85; }
+      50% { transform: translate(-40px, 30px) scale(1.12); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div id="home">
+    <section class="pf-hero" id="about">
+      <div class="container pf-hero-top">
+        <div class="pf-hello">Привет!</div>
+        <h1 class="pf-hero-title">Я — <em>Артём Крецкий</em>,<br />продуктовый дизайнер</h1>
+      </div>
+      <div class="pf-hero-stage">
+        <div class="pf-hero-arch" aria-hidden="true"></div>
+        <div class="pf-hero-side left">
+          <div class="pf-quote-mark">“</div>
+          <p class="pf-quote-text">Продуктовый дизайнер: дизайн-система, корпоративные сервисы и порталы для крупного нефтехимического холдинга.</p>
+        </div>
+        <img class="pf-hero-photo" src="images/profile.png?v=photo-3" alt="Крецкий Артём" />
+        <div class="pf-hero-side right">
+          <div class="pf-stars" aria-hidden="true">★★★★★</div>
+          <div class="pf-years">14+ лет<span>опыта</span></div>
+        </div>
+        <nav class="pf-hero-cta pf-hero-cta--links" aria-label="Ссылки">
+          <a class="pf-btn-orange" href="#works">Портфолио ↗</a>
+          <a class="pf-btn-ghost" href="https://www.figma.com/design/GtwEWYySQdH6Lkf4vtcZiQ/%D0%9F%D0%BE%D1%80%D1%82%D1%84%D0%BE%D0%BB%D0%B8%D0%BE-%D0%90%D0%9A?node-id=0-1&t=sPY125p3ItN31LXS-1" target="_blank" rel="noopener noreferrer">Фигма</a>
+          <a class="pf-btn-ghost" href="https://dribbble.com/art_202_90" target="_blank" rel="noopener noreferrer">Dribbble</a>
+          <a class="pf-btn-ghost" href="https://krasnodar.hh.ru/resume/27fbbd3fff0b7f88040039ed1f567753725736" target="_blank" rel="noopener noreferrer">HH</a>
+        </nav>
+      </div>
+      <div class="pf-exp-wrap">
+        <ol class="pf-exp" aria-label="Опыт работы">
+          <li class="pf-exp-card">
+            <span class="pf-exp-years">2012 — 2019</span>
+            <span class="pf-exp-company">Техносклад.ру</span>
+            <span class="pf-exp-industry">Розница: сеть магазинов техники и электроники, интернет-магазин</span>
+            <span class="pf-exp-role">Старший дизайнер</span>
+          </li>
+          <li class="pf-exp-card">
+            <span class="pf-exp-years">2019 — 2020</span>
+            <span class="pf-exp-company">ССБС</span>
+            <span class="pf-exp-industry">IT: аутсорсинг, системная интеграция и автоматизация бизнеса</span>
+            <span class="pf-exp-role">Дизайнер</span>
+          </li>
+          <li class="pf-exp-card">
+            <span class="pf-exp-years">2020 — 2022</span>
+            <span class="pf-exp-company">IQ Vector</span>
+            <span class="pf-exp-industry">EdTech: национальный образовательный ресурс</span>
+            <span class="pf-exp-role">Инженер-проектировщик пользовательских интерфейсов</span>
+          </li>
+          <li class="pf-exp-card">
+            <span class="pf-exp-years">2023 — 2024</span>
+            <span class="pf-exp-company">НИПИГАЗ ИТ</span>
+            <span class="pf-exp-industry">IT для инжиниринга в нефтегазохимии</span>
+            <span class="pf-exp-role">Эксперт</span>
+          </li>
+          <li class="pf-exp-card pf-exp-card--current">
+            <span class="pf-exp-years">2024 — 2026</span>
+            <span class="pf-exp-company">CИBYP Диджитал</span>
+            <span class="pf-exp-industry">Нефтехимия, производство и продажи</span>
+            <span class="pf-exp-role">Эксперт</span>
+          </li>
+        </ol>
+        <div class="pf-stack">
+          <span class="pf-stack-label">Стек:</span>
+          <ul class="pf-stack-list">
+            <li>Figma</li>
+            <li>React</li>
+            <li>Cursor</li>
+            <li>Claude Code</li>
+            <li>GPT</li>
+            <li>Агенты</li>
+            <li>Локальные LLM</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="pf-section pf-reveal" id="works" style="padding-top:0">
+      <div class="pf-services">
+        <div class="pf-port-head pf-services-head pf-reveal pf-reveal-delay-1">
+          <h2 class="pf-section-title">Моё <em>портфолио</em></h2>
+        </div>
+        <div class="ryn-works-carousel pf-works-carousel pf-reveal pf-reveal-delay-2" id="works-carousel">
+          <div class="ryn-works-viewport pf-works-viewport" id="works-viewport">
+            <div class="ryn-works-track pf-works-track" id="works-list"></div>
+          </div>
+          <div class="ryn-works-controls pf-works-controls">
+            <div class="ryn-works-dots pf-works-dots" id="works-dots" role="tablist" aria-label="Слайды"></div>
+            <div class="ryn-works-counter pf-works-counter" id="works-counter" hidden></div>
+          </div>
+          <p class="pf-works-hint" id="works-hint">Тяните по кругу · все проекты видны</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="pf-discuss pf-reveal" id="contact">
+      <div class="container">
+        <h2 class="pf-reveal pf-reveal-delay-1">Контакты <em>для связи</em></h2>
+        <ul class="pf-contacts pf-reveal pf-reveal-delay-2">
+          <li>
+            <a class="pf-contact-card" href="mailto:art_202_90@mail.ru">
+              <span class="pf-contact-label">Почта</span>
+              <span class="pf-contact-value">art_202_90@mail.ru</span>
+            </a>
+          </li>
+          <li>
+            <a class="pf-contact-card" href="https://t.me/Art202k" target="_blank" rel="noopener noreferrer">
+              <span class="pf-contact-label">Telegram</span>
+              <span class="pf-contact-value">@Art202k</span>
+            </a>
+          </li>
+          <li>
+            <a class="pf-contact-card" href="https://max.ru/u/f9LHodD0cOJ9ylX2p9WPgr1muKP92sacczC5LFBOTLt0iXmPYXBbJWymAt4" target="_blank" rel="noopener noreferrer">
+              <span class="pf-contact-label">Max</span>
+              <span class="pf-contact-value">8 989 261-55-51</span>
+            </a>
+          </li>
+          <li>
+            <a class="pf-contact-card" href="https://krasnodar.hh.ru/resume/27fbbd3fff0b7f88040039ed1f567753725736" target="_blank" rel="noopener noreferrer">
+              <span class="pf-contact-label">HH</span>
+              <span class="pf-contact-value">Резюме на hh.ru</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <footer class="pf-footer pf-reveal">
+      <div class="container">
+        <div class="pf-footer-grid">
+          <div>
+            <p style="margin-top:0">Продуктовый дизайнер: дизайн-система, корпоративные сервисы и порталы для крупного нефтехимического холдинга.</p>
+          </div>
+          <div>
+            <h4>Контакты</h4>
+            <ul>
+              <li><a href="mailto:art_202_90@mail.ru">art_202_90@mail.ru</a></li>
+              <li><a href="https://t.me/Art202k" target="_blank" rel="noopener noreferrer">Telegram @Art202k</a></li>
+              <li><a href="https://krasnodar.hh.ru/resume/27fbbd3fff0b7f88040039ed1f567753725736" target="_blank" rel="noopener noreferrer">HH · резюме</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Соцсети</h4>
+            <ul>
+              <li><a href="https://www.figma.com/design/GtwEWYySQdH6Lkf4vtcZiQ/%D0%9F%D0%BE%D1%80%D1%82%D1%84%D0%BE%D0%BB%D0%B8%D0%BE-%D0%90%D0%9A?node-id=0-1&t=sPY125p3ItN31LXS-1" target="_blank" rel="noopener noreferrer">Портфолио в Figma</a></li>
+              <li><a href="https://dribbble.com/art_202_90" target="_blank" rel="noopener noreferrer">Dribbble</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="pf-footer-bottom">
+          <div>© 2026 Крецкий Артём</div>
+          <div>Условия использования · Политика конфиденциальности</div>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <div id="detail" class="hidden">
+    <div class="detail-header">
+      <div class="container">
+        <button class="back-btn" onclick="showHome()"><span class="back-icon">←</span><span>Все работы</span></button>
+        <div class="detail-meta" id="detail-meta"></div>
+      </div>
+    </div>
+    <div class="container" id="detail-body"></div>
+    <div class="project-preview" id="detail-preview"></div>
+  </div>
+
+  <script>
+    if (location.protocol === 'file:') {
+      document.addEventListener('DOMContentLoaded', function () {
+        var overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#fff;color:#171717;display:flex;align-items:center;justify-content:center;padding:32px;text-align:center;font-family:Outfit,system-ui,sans-serif';
+        overlay.innerHTML = '<div style="max-width:32rem;line-height:1.6"><h2 style="margin-bottom:12px;font-size:1.5rem">Сайт нужно открывать через сервер</h2><p style="color:#344054">Запустите <strong>open.bat</strong> в папке проекта.</p></div>';
+        document.body.appendChild(overlay);
+      });
+    }
+
+    (function () {
+      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var nodes = document.querySelectorAll('.pf-reveal');
+      if (reduce) {
+        nodes.forEach(function (el) { el.classList.add('is-in'); });
+        return;
+      }
+      if (!('IntersectionObserver' in window)) {
+        nodes.forEach(function (el) { el.classList.add('is-in'); });
+        return;
+      }
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-in');
+            io.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.16, rootMargin: '0px 0px -8% 0px' });
+      nodes.forEach(function (el) { io.observe(el); });
+    })();
+  </script>
+  <script type="module" src="js/main.js?v=pf-focus-1"></script>
+</body>
+</html>

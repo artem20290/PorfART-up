@@ -1,0 +1,178 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
+  --color-fit-ink: #010101;
+  --color-fit-mute: #595959;
+  --color-fit-soft: #9f9f9f;
+  --color-fit-lime: #d5ff5f;
+  --color-fit-lime-2: #bdff00;
+  --color-fit-sky: #9ac0d6;
+  --color-fit-slate: #4e6075;
+  --color-fit-deep: #384350;
+  --color-fit-card: #d6dfe2;
+}
+
+html,
+body {
+  background: #5a6d7e;
+  color: #fff;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+::selection {
+  background: rgba(154, 192, 214, 0.55);
+  color: #010101;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #3a4a58;
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #8aa4b5, #5a6d7e);
+  border-radius: 10px;
+}
+
+@keyframes fit-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(12px, -18px, 0) scale(1.04);
+  }
+}
+
+@keyframes fit-float-slow {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(-16px, 10px, 0);
+  }
+}
+
+@keyframes fit-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fit-bg {
+  background-image: linear-gradient(145deg, #b7c9d4 0%, #7f94a5 42%, #556978 100%);
+}
+
+.fit-blob {
+  position: absolute;
+  border-radius: 40%;
+  background: radial-gradient(
+    circle at 40% 35%,
+    rgba(190, 210, 222, 0.55) 0%,
+    rgba(120, 145, 162, 0.2) 45%,
+    rgba(85, 105, 120, 0) 72%
+  );
+  filter: blur(28px);
+  pointer-events: none;
+}
+
+.fit-blob--a {
+  width: min(50vw, 620px);
+  height: min(50vw, 620px);
+  top: -12%;
+  left: -8%;
+  animation: fit-float 14s ease-in-out infinite;
+}
+
+.fit-blob--b {
+  width: min(55vw, 700px);
+  height: min(55vw, 700px);
+  right: -12%;
+  bottom: 0%;
+  background: radial-gradient(
+    circle at 50% 40%,
+    rgba(160, 185, 200, 0.4) 0%,
+    rgba(90, 110, 125, 0.15) 50%,
+    transparent 70%
+  );
+  animation: fit-float-slow 18s ease-in-out infinite;
+}
+
+.fit-rise {
+  animation: fit-rise 0.7s ease-out both;
+}
+
+.fit-rise-2 {
+  animation: fit-rise 0.85s ease-out 0.12s both;
+}
+
+.fit-rise-3 {
+  animation: fit-rise 0.9s ease-out 0.22s both;
+}
+
+.fit-card {
+  border-radius: 40px;
+  background: #fff;
+  color: #010101;
+  box-shadow: 0 24px 60px rgba(30, 45, 60, 0.18);
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
+}
+
+.fit-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 32px 72px rgba(30, 45, 60, 0.28);
+}
+
+.fit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 64px;
+  padding: 0 28px;
+  border-radius: 15px;
+  background: #d5ff5f;
+  color: #010101;
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 1;
+  transition: transform 0.25s ease, filter 0.25s ease, background 0.25s ease;
+}
+
+.fit-btn:hover {
+  transform: translateY(-2px) scale(1.02);
+  filter: brightness(1.05);
+}
+
+.fit-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 22px;
+  border-radius: 100px;
+  background: #fff;
+  color: #3a3a3a;
+  font-weight: 500;
+  font-size: 16px;
+  transition: transform 0.25s ease, background 0.25s ease;
+}
+
+.fit-btn-ghost:hover {
+  transform: translateY(-1px);
+  background: #f4f7f8;
+}
