@@ -4,7 +4,7 @@ setlocal EnableDelayedExpansion
 cd /d "%~dp0"
 
 where python >nul 2>&1
-if not %errorlevel%==0 (
+if errorlevel 1 (
   echo.
   echo  Python not found. Install from https://www.python.org/downloads/
   echo.
@@ -12,10 +12,13 @@ if not %errorlevel%==0 (
   exit /b 1
 )
 
-REM Keep gallery images in sync (Vite uses public/, this site serves images/)
-if exist "public\images\projects\" (
-  if not exist "images\projects\" mkdir "images\projects" >nul 2>&1
-  xcopy "public\images\projects\*" "images\projects\" /Y /Q >nul
+REM Keep gallery images in sync (Vite uses public/, this site serves images/).
+REM Newer file wins both ways - replacing a preview in either folder is kept.
+if not exist "images\projects\" mkdir "images\projects" >nul 2>&1
+if not exist "public\images\projects\" mkdir "public\images\projects" >nul 2>&1
+if exist "public\images\projects\" if exist "images\projects\" (
+  robocopy "public\images\projects" "images\projects" /XO /NFL /NDL /NJH /NJS /nc /ns /np >nul
+  robocopy "images\projects" "public\images\projects" /XO /NFL /NDL /NJH /NJS /nc /ns /np >nul
 )
 
 REM Kill anything already using 8765-8770
