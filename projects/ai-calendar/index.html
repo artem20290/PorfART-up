@@ -67,7 +67,7 @@
                 </button>
                 <div class="quick-action-expanded" id="plannerExpanded" hidden>
                     <div class="quick-action-input-wrap" id="plannerInputWrap">
-                        <input type="text" class="quick-action-input" id="plannerInput" placeholder="Голосовой запрос..." autocomplete="off" spellcheck="false">
+                        <input type="text" class="quick-action-input" id="plannerInput" placeholder="Напр.: Совещание с Петровым в пятницу в 16:00" autocomplete="off" spellcheck="false">
                         <button type="button" class="quick-action-close-btn" id="plannerCloseBtn" aria-label="Отменить ввод">
                             <svg class="quick-action-close-icon" viewBox="0 0 24 24" aria-hidden="true">
                                 <path d="M6.3 6.3a1 1 0 0 1 1.4 0L12 10.6l4.3-4.3a1 1 0 1 1 1.4 1.4L13.4 12l4.3 4.3a1 1 0 0 1-1.4 1.4L12 13.4l-4.3 4.3a1 1 0 0 1-1.4-1.4L10.6 12 6.3 7.7a1 1 0 0 1 0-1.4Z" fill="currentColor"/>
@@ -124,6 +124,42 @@
             <div class="days" id="daysContainer"></div>
         </div>
     </div>
+    </div>
+
+    <div class="agent-modal" id="agentModal" hidden>
+        <div class="agent-modal-backdrop" data-agent-close></div>
+        <div class="agent-modal-card" role="dialog" aria-modal="true" aria-labelledby="agentModalTitle">
+            <div class="agent-modal-head">
+                <div class="agent-modal-badge">Планировщик</div>
+                <h2 class="agent-modal-title" id="agentModalTitle">Готовлю встречу</h2>
+            </div>
+            <ol class="agent-steps" id="agentSteps" aria-label="Шаги агента"></ol>
+            <div class="agent-draft" id="agentDraft" hidden>
+                <div class="agent-draft-label">Черновик Outlook</div>
+                <p class="agent-draft-hint">Нажмите на параметр, чтобы изменить</p>
+                <dl class="agent-draft-grid" id="agentDraftGrid"></dl>
+                <div class="agent-voice-edit" id="agentVoiceEdit" hidden>
+                    <input type="text" class="agent-voice-input" id="agentVoiceInput" placeholder="Скажите или введите правку..." autocomplete="off" spellcheck="false">
+                    <button type="button" class="agent-voice-mic" id="agentVoiceMicBtn" aria-label="Микрофон">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v5a3 3 0 0 0 3 3Z" fill="currentColor"/>
+                            <path d="M19 11a1 1 0 1 0-2 0 5 5 0 0 1-10 0 1 1 0 1 0-2 0 7 7 0 0 0 6 6.92V21H9a1 1 0 1 0 0 2h6a1 1 0 1 0 0-2h-2v-3.08A7 7 0 0 0 19 11Z" fill="currentColor"/>
+                        </svg>
+                    </button>
+                    <button type="button" class="agent-btn agent-btn-primary agent-voice-apply" id="agentVoiceApplyBtn">Применить</button>
+                </div>
+                <div class="agent-draft-actions">
+                    <button type="button" class="agent-btn agent-btn-ghost" id="agentCancelBtn">Отменить</button>
+                    <button type="button" class="agent-btn agent-btn-primary" id="agentConfirmBtn">Подтвердить в Outlook</button>
+                </div>
+                <button type="button" class="agent-btn agent-btn-voice" id="agentVoiceEditBtn">Редактировать голосом</button>
+            </div>
+            <div class="agent-success" id="agentSuccess" hidden>
+                <div class="agent-success-title">Встреча создана</div>
+                <p class="agent-success-text" id="agentSuccessText"></p>
+                <button type="button" class="agent-btn agent-btn-primary" id="agentDoneBtn">Готово</button>
+            </div>
+        </div>
     </div>
 
     <!-- No inline JS (CSP-safe) -->

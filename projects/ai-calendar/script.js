@@ -481,6 +481,7 @@ async function applyExternalImages() {
 
 // Инициализация данных
 async function initApp() {
+    setupAgentModal();
     try {
         // Загрузка отмеченных дат и внешнего списка праздников
         await Promise.all([
@@ -646,16 +647,110 @@ function inferMeetingYear(day, month) {
     return year;
 }
 
+const OUTLOOK_DIRECTORY = [
+    {
+        keys: ['петров', 'петрова', 'петрову', 'петровым', 'петрове'],
+        name: 'Пётр Петров',
+        title: 'Руководитель направления',
+        email: 'petrov.p@sb.local',
+        department: 'ЦИТ'
+    },
+    {
+        keys: ['иванов', 'иванова', 'иванову', 'ивановым', 'ивановой'],
+        name: 'Анна Иванова',
+        title: 'Product Owner',
+        email: 'ivanova.a@sb.local',
+        department: 'Продукт'
+    },
+    {
+        keys: ['сидоров', 'сидорова', 'сидорову', 'сидоровым', 'сидоровой'],
+        name: 'Игорь Сидоров',
+        title: 'Ведущий аналитик',
+        email: 'sidorov.i@sb.local',
+        department: 'Аналитика'
+    }
+];
+
+const WEEKDAY_MAP = {
+    воскресень: 0,
+    понедельни: 1,
+    вторни: 2,
+    сред: 3,
+    четвер: 4,
+    пятниц: 5,
+    суббот: 6
+};
+
 function normalizeMeetingParticipants(raw) {
     if (!raw) return '';
 
     return raw
         .replace(/\s+(?:и|with)\s+/gi, ', ')
         .split(/[,;]+/)
-        .flatMap((part) => part.trim().split(/\s+/))
         .map((part) => part.trim())
         .filter(Boolean)
         .join(', ');
+}
+
+function resolveDirectoryPeople(rawNames) {
+    if (!rawNames) return [];
+    const chunks = rawNames
+        .replace(/\s+(?:и|with)\s+/gi, ', ')
+        .split(/[,;]+/)
+        .map((part) => part.trim())
+        .filter(Boolean);
+
+    const found = [];
+    chunks.forEach((chunk) => {
+        const key = chunk.toLowerCase().replace(/ё/g, 'е');
+        const person = OUTLOOK_DIRECTORY.find((entry) =>
+            entry.keys.some((k) => key.includes(k) || k.includes(key.split(/\s+/)[0]))
+        );
+        if (person && !found.some((p) => p.email === person.email)) found.push(person);
+    });
+    return found;
+}
+
+function nextWeekdayDate(weekday, fromDate = new Date()) {
+    const base = new Date(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate());
+    let diff = weekday - base.getDay();
+    if (diff < 0) diff += 7;
+    if (diff === 0) {
+        // If "в пятницу" and сегодня пятница — оставляем сегодня
+    }
+    base.setDate(base.getDate() + diff);
+    return base;
+}
+
+function parseRelativeDate(normalized) {
+    if (/\bсегодня\b/.test(normalized)) {
+        const d = new Date();
+        return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    }
+    if (/\bзавтра\b/.test(normalized)) {
+        const d = new Date();
+        d.setDate(d.getDate() + 1);
+        return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    }
+    if (/\bпослезавтра\b/.test(normalized)) {
+        const d = new Date();
+        d.setDate(d.getDate() + 2);
+        return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    }
+
+    for (const [stem, dow] of Object.entries(WEEKDAY_MAP)) {
+        if (normalized.includes(stem)) return nextWeekdayDate(dow);
+    }
+    return null;
+}
+
+function parseMeetingTime(normalized) {
+    const match = normalized.match(/\b(?:в|на)\s*(\d{1,2})(?:[:.](\d{2}))?\b/);
+    if (!match) return { hours: 16, minutes: 0, label: '16:00' };
+    const hours = Math.min(23, parseInt(match[1], 10));
+    const minutes = match[2] ? Math.min(59, parseInt(match[2], 10)) : 0;
+    const label = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+    return { hours, minutes, label };
 }
 
 function parsePlannerMeetingCommand(text) {
@@ -663,63 +758,93 @@ function parsePlannerMeetingCommand(text) {
     if (!raw) return null;
 
     const normalized = raw.toLowerCase().replace(/ё/g, 'е').replace(/\s+/g, ' ');
-    const isMeetingCommand = /(создай|создать|запланир|назнач|оформ|добав).{0,24}встреч/.test(normalized)
-        || /встреч.{0,24}(на|\d)/.test(normalized);
+    const isMeetingCommand = /(создай|создать|запланир|назнач|оформ|добав).{0,24}(встреч|совещани|митинг)/.test(normalized)
+        || /(встреч|совещани|митинг).{0,40}(на|в|\d|с\s)/.test(normalized)
+        || /^(совещани|встреч|митинг)\b/.test(normalized);
     if (!isMeetingCommand) return null;
 
     let day = null;
     let month = null;
     let year = null;
+    let date = parseRelativeDate(normalized);
 
-    const dayMonthMatch = normalized.match(
-        /(\d{1,2})\s*(?:[-–]?(?:го|е|\.)?\s*)?(январ\w*|феврал\w*|март\w*|апрел\w*|ма[йя]\w*|июн\w*|июл\w*|август\w*|сентябр\w*|октябр\w*|ноябр\w*|декабр\w*)/
-    );
-    if (dayMonthMatch) {
-        day = parseInt(dayMonthMatch[1], 10);
-        month = parseRussianMonthName(dayMonthMatch[2]);
-    }
+    if (!date) {
+        const dayMonthMatch = normalized.match(
+            /(\d{1,2})\s*(?:[-–]?(?:го|е|\.)?\s*)?(январ\w*|феврал\w*|март\w*|апрел\w*|ма[йя]\w*|июн\w*|июл\w*|август\w*|сентябр\w*|октябр\w*|ноябр\w*|декабр\w*)/
+        );
+        if (dayMonthMatch) {
+            day = parseInt(dayMonthMatch[1], 10);
+            month = parseRussianMonthName(dayMonthMatch[2]);
+        }
 
-    if (day === null || month === null) {
-        const numericMatch = normalized.match(/(\d{1,2})[./](\d{1,2})(?:[./](\d{2,4}))?/);
-        if (numericMatch) {
-            day = parseInt(numericMatch[1], 10);
-            month = parseInt(numericMatch[2], 10) - 1;
-            if (numericMatch[3]) {
-                year = parseInt(numericMatch[3], 10);
-                if (year < 100) year += 2000;
+        if (day === null || month === null) {
+            const numericMatch = normalized.match(/(\d{1,2})[./](\d{1,2})(?:[./](\d{2,4}))?/);
+            if (numericMatch) {
+                day = parseInt(numericMatch[1], 10);
+                month = parseInt(numericMatch[2], 10) - 1;
+                if (numericMatch[3]) {
+                    year = parseInt(numericMatch[3], 10);
+                    if (year < 100) year += 2000;
+                }
             }
         }
+
+        if (day === null || month === null) return null;
+
+        const yearMatch = normalized.match(/\b(20\d{2})\b/);
+        if (yearMatch) year = parseInt(yearMatch[1], 10);
+        if (!year) year = inferMeetingYear(day, month);
+
+        date = new Date(year, month, day);
+        if (date.getFullYear() !== year || date.getMonth() !== month || date.getDate() !== day) return null;
     }
 
-    if (day === null || month === null) return null;
-
-    const yearMatch = normalized.match(/\b(20\d{2})\b/);
-    if (yearMatch) year = parseInt(yearMatch[1], 10);
-    if (!year) year = inferMeetingYear(day, month);
+    const time = parseMeetingTime(normalized);
 
     let topic = '';
-    const topicMatch = raw.match(/(?:тема(?:\s+встречи)?|по\s+теме)\s*[:\-–]?\s*(.+?)(?=(?:,\s*)?(?:участник|с\s+участник)|$)/i);
-    if (topicMatch) topic = topicMatch[1].trim();
+    const topicMatch = raw.match(/(?:тема(?:\s+встречи)?|по\s+теме)\s*[:\-–]?\s*(.+?)(?=(?:,\s*)?(?:участник|с\s+)|$)/i);
+    if (topicMatch) {
+        topic = topicMatch[1].trim();
+    } else if (/совещани/.test(normalized)) {
+        topic = 'Совещание';
+    } else if (/митинг/.test(normalized)) {
+        topic = 'Митинг';
+    } else {
+        topic = 'Встреча';
+    }
 
-    let participants = '';
+    let participantsRaw = '';
+    const withMatch = raw.match(/\bс\s+([А-Яа-яЁёA-Za-z\-]+(?:\s+(?:и|with)\s+[А-Яа-яЁёA-Za-z\-]+)*)/i);
     const participantsMatch = raw.match(/(?:участник\w*|с\s+участник\w*)\s*[:\-–]?\s*(.+)$/i);
-    if (participantsMatch) participants = normalizeMeetingParticipants(participantsMatch[1]);
+    if (participantsMatch) participantsRaw = participantsMatch[1];
+    else if (withMatch) participantsRaw = withMatch[1];
 
-    const date = new Date(year, month, day);
-    if (date.getFullYear() !== year || date.getMonth() !== month || date.getDate() !== day) return null;
+    const people = resolveDirectoryPeople(participantsRaw);
+    const participants = people.length
+        ? people.map((p) => p.name).join(', ')
+        : normalizeMeetingParticipants(participantsRaw);
 
-    return { date, topic, participants };
+    return {
+        date,
+        time,
+        topic,
+        participants,
+        people,
+        query: raw
+    };
 }
 
-async function createMeetingFromPlanner({ date, topic, participants }) {
+async function createMeetingFromPlanner({ date, topic, participants, time }) {
     const dateKey = getDateKey(date);
+    const timeLabel = time && time.label ? time.label : '';
 
     markedDates[dateKey] = {
         marked: true,
         timestamp: Date.now(),
         color: '#008D97',
-        meetingTopic: topic.slice(0, 200),
-        meetingParticipants: participants.slice(0, 500)
+        meetingTopic: String(topic || '').slice(0, 200),
+        meetingParticipants: String(participants || '').slice(0, 500),
+        meetingTime: String(timeLabel).slice(0, 16)
     };
 
     await saveMarkedDates();
@@ -728,12 +853,489 @@ async function createMeetingFromPlanner({ date, topic, participants }) {
     renderCalendar();
 }
 
-async function tryApplyPlannerMeetingCommand(text) {
+function formatAgentDate(date, time) {
+    const dateLabel = date.toLocaleDateString('ru-RU', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long'
+    });
+    return time && time.label ? `${dateLabel}, ${time.label}` : dateLabel;
+}
+
+function getAgentModalEls() {
+    return {
+        modal: document.getElementById('agentModal'),
+        steps: document.getElementById('agentSteps'),
+        draft: document.getElementById('agentDraft'),
+        draftGrid: document.getElementById('agentDraftGrid'),
+        voiceEdit: document.getElementById('agentVoiceEdit'),
+        voiceInput: document.getElementById('agentVoiceInput'),
+        voiceMicBtn: document.getElementById('agentVoiceMicBtn'),
+        voiceApplyBtn: document.getElementById('agentVoiceApplyBtn'),
+        voiceEditBtn: document.getElementById('agentVoiceEditBtn'),
+        success: document.getElementById('agentSuccess'),
+        successText: document.getElementById('agentSuccessText'),
+        confirmBtn: document.getElementById('agentConfirmBtn'),
+        cancelBtn: document.getElementById('agentCancelBtn'),
+        doneBtn: document.getElementById('agentDoneBtn')
+    };
+}
+
+let agentPendingDraft = null;
+let agentBusy = false;
+let agentVoiceRecognition = null;
+let agentEditingField = null;
+
+function getDraftPeopleLine(draft) {
+    if (draft.people && draft.people.length) {
+        return draft.people.map((p) => `${p.name} · ${p.email}`).join('; ');
+    }
+    return draft.participants || 'Не найдены в каталоге';
+}
+
+function stopAgentVoiceRecognition() {
+    const els = getAgentModalEls();
+    if (agentVoiceRecognition) {
+        try { agentVoiceRecognition.stop(); } catch { /* ignore */ }
+        agentVoiceRecognition = null;
+    }
+    if (els.voiceMicBtn) els.voiceMicBtn.classList.remove('is-listening');
+}
+
+function closeAgentModal() {
+    const els = getAgentModalEls();
+    if (!els.modal) return;
+    stopAgentVoiceRecognition();
+    els.modal.hidden = true;
+    agentPendingDraft = null;
+    agentBusy = false;
+    agentEditingField = null;
+    if (els.draft) els.draft.hidden = true;
+    if (els.success) els.success.hidden = true;
+    if (els.steps) els.steps.innerHTML = '';
+    if (els.voiceEdit) els.voiceEdit.hidden = true;
+    if (els.voiceEditBtn) els.voiceEditBtn.classList.remove('is-open');
+    if (els.voiceInput) els.voiceInput.value = '';
+}
+
+function renderAgentSteps(steps, activeIndex) {
+    const els = getAgentModalEls();
+    if (!els.steps) return;
+    els.steps.innerHTML = '';
+    steps.forEach((step, index) => {
+        const li = document.createElement('li');
+        li.className = 'agent-step';
+        if (index < activeIndex) li.classList.add('is-done');
+        if (index === activeIndex) li.classList.add('is-active');
+        li.innerHTML =
+            `<span class="agent-step-dot" aria-hidden="true">${index < activeIndex ? '✓' : index + 1}</span>` +
+            `<span><div class="agent-step-label">${step.label}</div>` +
+            `<div class="agent-step-desc">${step.desc}</div></span>`;
+        els.steps.appendChild(li);
+    });
+}
+
+function updateDraftField(field, rawValue) {
+    if (!agentPendingDraft) return false;
+    const value = String(rawValue || '').trim();
+    if (!value) return false;
+
+    if (field === 'topic') {
+        agentPendingDraft.topic = value.slice(0, 200);
+        return true;
+    }
+
+    if (field === 'when') {
+        const normalized = value.toLowerCase().replace(/ё/g, 'е').replace(/\s+/g, ' ');
+        const relative = parseRelativeDate(normalized);
+        const time = parseMeetingTime(normalized);
+        let date = relative;
+
+        if (!date) {
+            const dayMonthMatch = normalized.match(
+                /(\d{1,2})\s*(?:[-–]?(?:го|е|\.)?\s*)?(январ\w*|феврал\w*|март\w*|апрел\w*|ма[йя]\w*|июн\w*|июл\w*|август\w*|сентябр\w*|октябр\w*|ноябр\w*|декабр\w*)/
+            );
+            if (dayMonthMatch) {
+                const day = parseInt(dayMonthMatch[1], 10);
+                const month = parseRussianMonthName(dayMonthMatch[2]);
+                if (month !== null) {
+                    const year = inferMeetingYear(day, month);
+                    date = new Date(year, month, day);
+                }
+            }
+        }
+
+        if (!date) {
+            const numericMatch = normalized.match(/(\d{1,2})[./](\d{1,2})(?:[./](\d{2,4}))?/);
+            if (numericMatch) {
+                const day = parseInt(numericMatch[1], 10);
+                const month = parseInt(numericMatch[2], 10) - 1;
+                let year = numericMatch[3] ? parseInt(numericMatch[3], 10) : inferMeetingYear(day, month);
+                if (year < 100) year += 2000;
+                date = new Date(year, month, day);
+            }
+        }
+
+        if (date && !Number.isNaN(date.getTime())) agentPendingDraft.date = date;
+        if (/\d/.test(normalized)) agentPendingDraft.time = time;
+        else if (!agentPendingDraft.time) agentPendingDraft.time = { hours: 16, minutes: 0, label: '16:00' };
+        return true;
+    }
+
+    if (field === 'participants') {
+        const people = resolveDirectoryPeople(value);
+        agentPendingDraft.people = people;
+        agentPendingDraft.participants = people.length
+            ? people.map((p) => p.name).join(', ')
+            : normalizeMeetingParticipants(value);
+        return true;
+    }
+
+    return false;
+}
+
+function patchDraftFromVoiceText(text) {
+    if (!agentPendingDraft) return false;
+    const raw = String(text || '').trim();
+    if (!raw) return false;
+
+    const parsed = parsePlannerMeetingCommand(raw);
+    if (parsed) {
+        agentPendingDraft = {
+            ...agentPendingDraft,
+            ...parsed,
+            query: raw
+        };
+        return true;
+    }
+
+    const normalized = raw.toLowerCase().replace(/ё/g, 'е').replace(/\s+/g, ' ');
+    let changed = false;
+
+    if (/(?:тем[ауе]|назови|переимен)/.test(normalized) || /^(совещани|встреч|митинг)\b/.test(normalized)) {
+        const topicMatch = raw.match(/(?:тем[ауе]\s*[:\-–]?\s*)(.+)$/i);
+        agentPendingDraft.topic = (topicMatch ? topicMatch[1] : raw).trim().slice(0, 200);
+        changed = true;
+    }
+
+    if (/\b(?:на|в|перенес|помен|сдвин)/.test(normalized) || parseRelativeDate(normalized) || /\d{1,2}[:.]\d{2}/.test(normalized)) {
+        changed = updateDraftField('when', raw) || changed;
+    }
+
+    if (/\bс\s+[а-яё]/i.test(raw) || /участник/i.test(raw)) {
+        const withMatch = raw.match(/\bс\s+([А-Яа-яЁёA-Za-z\-]+(?:\s+(?:и|with)\s+[А-Яа-яЁёA-Za-z\-]+)*)/i);
+        changed = updateDraftField('participants', withMatch ? withMatch[1] : raw) || changed;
+    }
+
+    if (!changed) {
+        // fallback: treat whole phrase as when/topic soft update
+        if (parseRelativeDate(normalized) || /\d/.test(normalized)) {
+            changed = updateDraftField('when', raw);
+        } else {
+            changed = updateDraftField('topic', raw);
+        }
+    }
+
+    return changed;
+}
+
+function beginDraftFieldEdit(field, currentValue) {
+    if (!agentPendingDraft) return;
+    agentEditingField = field;
+    renderAgentDraft(agentPendingDraft, field, currentValue);
+}
+
+function commitDraftFieldEdit(field, inputEl) {
+    if (!inputEl) return;
+    updateDraftField(field, inputEl.value);
+    agentEditingField = null;
+    renderAgentDraft(agentPendingDraft);
+}
+
+function renderAgentDraft(draft, editingField = null, editingSeed = '') {
+    const els = getAgentModalEls();
+    if (!els.draft || !els.draftGrid || !draft) return;
+
+    const peopleLine = getDraftPeopleLine(draft);
+    const rows = [
+        { field: 'topic', label: 'Тема', value: draft.topic || 'Встреча', editable: true, editValue: draft.topic || 'Встреча' },
+        { field: 'when', label: 'Когда', value: formatAgentDate(draft.date, draft.time), editable: true, editValue: formatAgentDate(draft.date, draft.time) },
+        { field: 'participants', label: 'Участники', value: peopleLine, editable: true, editValue: draft.participants || '' },
+        { field: 'calendar', label: 'Календарь', value: 'Microsoft Outlook', editable: false },
+        { field: 'organizer', label: 'Организатор', value: 'Вы (корпоративный AI-календарь)', editable: false }
+    ];
+
+    els.draftGrid.innerHTML = '';
+    rows.forEach((row) => {
+        const wrap = document.createElement('div');
+        wrap.className = 'agent-draft-row' + (row.editable ? ' is-editable' : '');
+        wrap.dataset.field = row.field;
+        if (row.editable) {
+            wrap.setAttribute('role', 'button');
+            wrap.tabIndex = 0;
+        }
+
+        if (editingField === row.field) {
+            wrap.classList.add('is-editing');
+            wrap.removeAttribute('role');
+            wrap.removeAttribute('tabindex');
+            wrap.innerHTML =
+                `<dt>${row.label}</dt>` +
+                `<dd><input class="agent-draft-input" data-agent-field="${row.field}"></dd>`;
+            const input = wrap.querySelector('input');
+            input.value = editingSeed || row.editValue;
+            input.addEventListener('click', (e) => e.stopPropagation());
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    commitDraftFieldEdit(row.field, input);
+                }
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    agentEditingField = null;
+                    renderAgentDraft(agentPendingDraft);
+                }
+            });
+            input.addEventListener('blur', () => {
+                if (agentEditingField === row.field) commitDraftFieldEdit(row.field, input);
+            });
+            els.draftGrid.appendChild(wrap);
+            requestAnimationFrame(() => {
+                input.focus();
+                input.select();
+            });
+            return;
+        }
+
+        wrap.innerHTML =
+            `<dt>${row.label}${row.editable ? '<span class="agent-draft-edit-hint">изменить</span>' : ''}</dt>` +
+            `<dd>${row.value}</dd>`;
+
+        if (row.editable) {
+            wrap.addEventListener('click', () => beginDraftFieldEdit(row.field, row.editValue));
+            wrap.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    beginDraftFieldEdit(row.field, row.editValue);
+                }
+            });
+        }
+
+        els.draftGrid.appendChild(wrap);
+    });
+
+    els.draft.hidden = false;
+}
+
+function toggleAgentVoiceEdit(forceOpen) {
+    const els = getAgentModalEls();
+    if (!els.voiceEdit || !els.voiceEditBtn) return;
+    const open = typeof forceOpen === 'boolean' ? forceOpen : els.voiceEdit.hidden;
+    els.voiceEdit.hidden = !open;
+    els.voiceEditBtn.classList.toggle('is-open', open);
+    els.voiceEditBtn.textContent = open ? 'Скрыть голосовой ввод' : 'Редактировать голосом';
+    if (open && els.voiceInput) {
+        els.voiceInput.focus();
+    } else {
+        stopAgentVoiceRecognition();
+        if (els.voiceInput) els.voiceInput.value = '';
+    }
+}
+
+function applyAgentVoiceEdit() {
+    const els = getAgentModalEls();
+    if (!els.voiceInput || !agentPendingDraft) return;
+    const text = els.voiceInput.value.trim();
+    if (!text) return;
+    stopAgentVoiceRecognition();
+    if (patchDraftFromVoiceText(text)) {
+        agentEditingField = null;
+        renderAgentDraft(agentPendingDraft);
+        els.voiceInput.value = '';
+        els.voiceInput.placeholder = 'Правка применена. Можно сказать ещё…';
+    } else {
+        els.voiceInput.placeholder = 'Не удалось разобрать правку';
+    }
+}
+
+function startAgentVoiceListening() {
+    const els = getAgentModalEls();
+    if (!els.voiceInput || !els.voiceMicBtn) return;
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        els.voiceInput.placeholder = 'Голос недоступен — введите текст';
+        els.voiceInput.focus();
+        return;
+    }
+
+    if (agentVoiceRecognition) {
+        stopAgentVoiceRecognition();
+        return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'ru-RU';
+    recognition.interimResults = true;
+    recognition.continuous = false;
+
+    recognition.onstart = () => {
+        els.voiceMicBtn.classList.add('is-listening');
+        els.voiceInput.placeholder = 'Слушаю…';
+    };
+    recognition.onerror = () => {
+        stopAgentVoiceRecognition();
+        els.voiceInput.placeholder = 'Не удалось распознать — введите текст';
+    };
+    recognition.onend = () => {
+        els.voiceMicBtn.classList.remove('is-listening');
+        agentVoiceRecognition = null;
+        if (els.voiceInput.value.trim()) applyAgentVoiceEdit();
+    };
+    recognition.onresult = (event) => {
+        let transcript = '';
+        for (let i = 0; i < event.results.length; i += 1) {
+            transcript += event.results[i][0].transcript;
+        }
+        els.voiceInput.value = transcript.trim();
+    };
+
+    agentVoiceRecognition = recognition;
+    try {
+        recognition.start();
+    } catch {
+        stopAgentVoiceRecognition();
+        els.voiceInput.placeholder = 'Микрофон занят — введите текст';
+    }
+}
+
+async function runPlannerAgent(text) {
     const parsed = parsePlannerMeetingCommand(text);
     if (!parsed) return false;
 
-    await createMeetingFromPlanner(parsed);
+    const els = getAgentModalEls();
+    if (!els.modal || agentBusy) return true;
+
+    agentBusy = true;
+    agentPendingDraft = parsed;
+    agentEditingField = null;
+    stopAgentVoiceRecognition();
+    if (els.success) els.success.hidden = true;
+    if (els.draft) els.draft.hidden = true;
+    if (els.voiceEdit) els.voiceEdit.hidden = true;
+    if (els.voiceEditBtn) {
+        els.voiceEditBtn.classList.remove('is-open');
+        els.voiceEditBtn.textContent = 'Редактировать голосом';
+    }
+    if (els.voiceInput) {
+        els.voiceInput.value = '';
+        els.voiceInput.placeholder = 'Скажите или введите правку...';
+    }
+    els.modal.hidden = false;
+
+    const person = parsed.people[0];
+    const steps = [
+        {
+            label: 'Понял запрос',
+            desc: `«${parsed.query}»`
+        },
+        {
+            label: 'Сверяю календарь',
+            desc: 'Свободные слоты и рабочие часы'
+        },
+        {
+            label: 'Ищу участника',
+            desc: person
+                ? `${person.name} · ${person.email}`
+                : 'Поиск в каталоге Outlook'
+        },
+        {
+            label: 'Собираю встречу',
+            desc: formatAgentDate(parsed.date, parsed.time)
+        },
+        {
+            label: 'Проверьте данные',
+            desc: 'Подтвердите создание в Outlook'
+        }
+    ];
+
+    for (let i = 0; i < steps.length; i += 1) {
+        renderAgentSteps(steps, i);
+        await new Promise((resolve) => setTimeout(resolve, 420));
+        if (!agentPendingDraft) return true;
+    }
+    renderAgentSteps(steps, steps.length);
+    renderAgentDraft(parsed);
+    agentBusy = false;
     return true;
+}
+
+async function confirmAgentMeeting() {
+    if (!agentPendingDraft) return;
+    const draft = agentPendingDraft;
+    await createMeetingFromPlanner(draft);
+
+    const els = getAgentModalEls();
+    if (els.draft) els.draft.hidden = true;
+    if (els.success && els.successText) {
+        const who = draft.people[0] ? draft.people[0].name : (draft.participants || 'участником');
+        els.successText.textContent =
+            `Outlook: «${draft.topic || 'Встреча'}» с ${who} — ${formatAgentDate(draft.date, draft.time)}. Приглашение подготовлено.`;
+        els.success.hidden = false;
+    }
+    agentPendingDraft = null;
+}
+
+function setupAgentModal() {
+    const els = getAgentModalEls();
+    if (!els.modal) return;
+
+    els.modal.querySelectorAll('[data-agent-close]').forEach((node) => {
+        node.addEventListener('click', closeAgentModal);
+    });
+    if (els.cancelBtn) els.cancelBtn.addEventListener('click', closeAgentModal);
+    if (els.doneBtn) els.doneBtn.addEventListener('click', closeAgentModal);
+    if (els.confirmBtn) {
+        els.confirmBtn.addEventListener('click', () => {
+            stopAgentVoiceRecognition();
+            confirmAgentMeeting().catch((err) => console.error(err));
+        });
+    }
+    if (els.voiceEditBtn) {
+        els.voiceEditBtn.addEventListener('click', () => toggleAgentVoiceEdit());
+    }
+    if (els.voiceMicBtn) {
+        els.voiceMicBtn.addEventListener('click', () => startAgentVoiceListening());
+    }
+    if (els.voiceApplyBtn) {
+        els.voiceApplyBtn.addEventListener('click', () => applyAgentVoiceEdit());
+    }
+    if (els.voiceInput) {
+        els.voiceInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                applyAgentVoiceEdit();
+            }
+        });
+    }
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && els.modal && !els.modal.hidden) {
+            if (els.voiceEdit && !els.voiceEdit.hidden) {
+                toggleAgentVoiceEdit(false);
+                return;
+            }
+            if (agentEditingField) {
+                agentEditingField = null;
+                renderAgentDraft(agentPendingDraft);
+                return;
+            }
+            closeAgentModal();
+        }
+    });
+}
+
+async function tryApplyPlannerMeetingCommand(text) {
+    return runPlannerAgent(text);
 }
 
 function getMeetingEntry(date) {
@@ -751,7 +1353,9 @@ function applyMeetingTooltip(dayElement, date) {
     const meeting = getMeetingEntry(date);
     if (!meeting) return;
 
-    const lines = ['Встреча создана'];
+    const entry = markedDates[getDateKey(date)] || {};
+    const lines = ['Встреча в Outlook'];
+    if (entry.meetingTime) lines.push(`Время: ${entry.meetingTime}`);
     if (meeting.topic) lines.push(`Тема: ${meeting.topic}`);
     if (meeting.participants) lines.push(`Участники: ${meeting.participants}`);
 
@@ -1077,8 +1681,8 @@ function setupQuickActions() {
             micBtn: document.getElementById('plannerMicBtn'),
             closeBtn: document.getElementById('plannerCloseBtn'),
             suggestions: document.getElementById('plannerSuggestions'),
-            placeholder: 'Голосовой запрос...',
-            listeningPlaceholder: 'Слушаю... говорите запрос'
+            placeholder: 'Напр.: Совещание с Петровым в пятницу в 16:00',
+            listeningPlaceholder: 'Слушаю... диктуйте встречу'
         }
     };
 
@@ -1138,6 +1742,10 @@ function setupQuickActions() {
                 panel.input.value = label;
                 finalizedTranscript = label;
                 hideSuggestions(panel);
+                if (panel === panels.planner) {
+                    applyPlannerInput(panel).catch((err) => console.error(err));
+                    return;
+                }
                 panel.input.focus();
             });
             panel.suggestions.appendChild(option);
@@ -1147,8 +1755,30 @@ function setupQuickActions() {
         panel.expanded.classList.add('has-suggestions');
     }
 
+    const PLANNER_SAMPLE_PROMPTS = [
+        'Совещание с Петровым в пятницу в 16:00',
+        'Встреча с Ивановой завтра в 11:00',
+        'Создай встречу с Сидоровым на 25 марта в 14:30'
+    ];
+
     function updatePanelSuggestions(panel, panelName) {
         if (!panel) return;
+        if (panelName === 'planner') {
+            const q = panel.input.value.trim().toLowerCase();
+            if (!q) {
+                renderSuggestions(panel, PLANNER_SAMPLE_PROMPTS);
+                return;
+            }
+            const filtered = PLANNER_SAMPLE_PROMPTS.filter((item) =>
+                item.toLowerCase().includes(q) || q.length < 3
+            );
+            if (filtered.length && q.length < 24) {
+                renderSuggestions(panel, filtered);
+            } else {
+                hideSuggestions(panel);
+            }
+            return;
+        }
         if (panelName !== 'vkus') {
             hideSuggestions(panel);
             return;
@@ -1323,6 +1953,7 @@ function setupQuickActions() {
         panel.expanded.hidden = false;
         panel.input.placeholder = panel.placeholder;
         panel.input.focus();
+        if (name === 'planner') updatePanelSuggestions(panel, 'planner');
     }
 
     async function closeActivePanel() {
