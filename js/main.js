@@ -52,6 +52,7 @@ export const projects = [
     highlights: ['Оргструктура и аналитика эффективности', 'Карточки сотрудников с KPI', 'AI-ассистент для HR-аналитики'],
     gallery: [img('ai-org-analytics.png')],
     demo: 'projects/ai-org-analytics/index.html',
+    desktopOnly: true,
   },
   {
     id: 'focus',
@@ -69,6 +70,7 @@ export const projects = [
     highlights: ['Канбан как основная идея', 'Дорожная карта, фильтры и группировка', 'Сводка по статусам и просрочкам'],
     gallery: [img('focus.png')],
     demo: 'projects/porucheniya/index.html',
+    desktopOnly: true,
   },
   {
     id: 'service-reports',
@@ -86,6 +88,7 @@ export const projects = [
     highlights: ['Модульная структура отчётов', 'Графики и сводные таблицы', 'Редактор презентаций'],
     gallery: [img('service-reports.png')],
     demo: 'projects/service-reports/index.html',
+    desktopOnly: true,
   },
   {
     id: 'ai-calendar',
@@ -124,6 +127,7 @@ export const projects = [
     highlights: ['Treemap и каскадные фильтры', 'Действия до совещания с прогнозом эффекта', 'Бенчмарки цен и аудит отклонений'],
     gallery: [img('procurement-management-portal-design.png')],
     demo: 'projects/procurement-management-portal-design/demo.html',
+    desktopOnly: true,
   },
   {
     id: 'flotatsiya',
@@ -564,6 +568,23 @@ window.showProject = function(id) {
 
   const preview = document.getElementById('detail-preview');
   const demoPath = getProjectDemoPath(p);
+  const mobileView = window.matchMedia
+    ? window.matchMedia('(max-width: 900px)').matches
+    : window.innerWidth <= 900;
+
+  if (p.desktopOnly && mobileView) {
+    preview.innerHTML =
+      '<div class="project-desktop-stub" role="status">' +
+        '<div class="project-desktop-stub-mark">SB</div>' +
+        '<h2>' + escapeHtml(p.title) + '</h2>' +
+        '<p>Это демо лучше смотрится на компьютере.</p>' +
+        '<p class="project-desktop-stub-hint">Откройте страницу на десктопе — или вернитесь к списку работ.</p>' +
+        '<button type="button" class="pf-btn-orange ryn-btn-case" id="desktop-stub-back">К работам</button>' +
+      '</div>';
+    const back = document.getElementById('desktop-stub-back');
+    if (back) back.addEventListener('click', () => showHome());
+    return;
+  }
 
   preview.innerHTML = '<div class="project-preview-placeholder">Загрузка демо…</div>';
   fetch(demoPath, { method: 'HEAD' })
