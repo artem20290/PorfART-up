@@ -30,6 +30,14 @@
   --dur-fast: 160ms;
   --dur: 280ms;
   --dur-slow: 480ms;
+  --phone-w: 375;
+  --phone-h: 812;
+  --ui-scale: 1;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
 }
 
 body {
@@ -37,7 +45,8 @@ body {
   font-weight: 500;
   -webkit-font-smoothing: antialiased;
   background: #dfe3e6;
-  min-height: 100vh;
+  min-height: 100%;
+  min-height: 100dvh;
   color: var(--bg-text-text);
 }
 
@@ -62,11 +71,35 @@ button, .press {
 }
 
 .main-wrap {
-  display: flex; align-items: center; justify-content: center;
-  min-height: 100vh; padding: 32px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  min-height: 100dvh;
+  width: 100%;
+  padding: 12px;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
-.iphone-outer { position: relative; user-select: none; }
+.iphone-stage {
+  width: calc(var(--phone-w) * var(--ui-scale) * 1px);
+  height: calc(var(--phone-h) * var(--ui-scale) * 1px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.iphone-outer {
+  position: relative;
+  user-select: none;
+  width: calc(var(--phone-w) * 1px);
+  height: calc(var(--phone-h) * 1px);
+  transform: scale(var(--ui-scale));
+  transform-origin: center center;
+  flex-shrink: 0;
+}
 .iphone-btn-mute { position: absolute; left: -3px; top: 110px; width: 3px; height: 28px; border-radius: 2px 0 0 2px; background: #2a2b2d; }
 .iphone-btn-vol-up { position: absolute; left: -3px; top: 158px; width: 3px; height: 50px; border-radius: 2px 0 0 2px; background: #2a2b2d; }
 .iphone-btn-vol-down { position: absolute; left: -3px; top: 220px; width: 3px; height: 50px; border-radius: 2px 0 0 2px; background: #2a2b2d; }
@@ -312,9 +345,16 @@ button, .press {
   width: 36px; height: 36px; border-radius: 12px; background: var(--primary); color: #fff;
   display: flex; align-items: center; justify-content: center;
   transition: transform var(--dur) var(--ease-spring);
+  overflow: hidden;
 }
 .qa:hover .qa-icon { transform: scale(1.06); }
 .qa-icon svg { width: 18px; height: 18px; display: block; }
+.qa-icon--img img {
+  width: 24px; height: 24px;
+  object-fit: cover;
+  display: block;
+  border-radius: 6px;
+}
 .qa-label {
   font-size: 11px; font-weight: 500; line-height: 13px; text-align: center;
   color: var(--bg-text-text);

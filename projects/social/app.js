@@ -252,14 +252,14 @@ function renderHero() {
 
 function renderActions() {
   const items = [
-    ['create', sb('plus'), 'Создать пост'],
-    ['stories', sb('image'), 'Сторис'],
-    ['reels', sb('zap'), 'Reels'],
-    ['live', sb('monitor'), 'Live'],
+    ['create', 'assets/qa/create.png', 'Создать пост'],
+    ['stories', 'assets/qa/stories.png', 'Сторис'],
+    ['reels', 'assets/qa/reels.png', 'Reels'],
+    ['live', 'assets/qa/live.png', 'Live'],
   ];
-  return `<div class="qa-grid">${items.map(([action, ic, label]) => `
+  return `<div class="qa-grid">${items.map(([action, src, label]) => `
     <button class="qa" type="button" data-action="${action}">
-      <span class="qa-icon">${ic}</span>
+      <span class="qa-icon qa-icon--img">${img(src)}</span>
       <span class="qa-label">${label}</span>
     </button>`).join('')}</div>`;
 }
@@ -1035,5 +1035,20 @@ document.getElementById('topbar').addEventListener('click', handleClick);
 document.getElementById('bottom-nav').addEventListener('click', handleClick);
 document.getElementById('overlay').addEventListener('click', handleClick);
 document.getElementById('overlay').addEventListener('submit', handleSubmit);
+
+const PHONE_W = 375;
+const PHONE_H = 812;
+const PHONE_PAD = 24;
+
+function updatePhoneScale() {
+  const aw = Math.max(window.innerWidth - PHONE_PAD, 1);
+  const ah = Math.max(window.innerHeight - PHONE_PAD, 1);
+  const scale = Math.min(aw / PHONE_W, ah / PHONE_H, 1);
+  document.documentElement.style.setProperty('--ui-scale', String(scale));
+}
+
+updatePhoneScale();
+window.addEventListener('resize', updatePhoneScale);
+window.addEventListener('orientationchange', updatePhoneScale);
 
 render();
