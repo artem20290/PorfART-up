@@ -444,8 +444,88 @@ function buildOrgUnits(employees) {
     units.push(...deptUnits.values());
     return units;
 }
+const ORG_DATA_SEED = 20261021;
+function mulberry32(seed) {
+    let a = seed >>> 0;
+    return function () {
+        a = (a + 0x6D2B79F5) | 0;
+        let t = Math.imul(a ^ (a >>> 15), 1 | a);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+}
+const __orgRand = Math.random;
+Math.random = mulberry32(ORG_DATA_SEED);
 const employees = generateEmployees();
+// Демо-якоря для AI-ассистента: Петров + «неэффективные»
+(function injectDemoPeople() {
+    const beta = ENTERPRISES.find((e) => e.orgId === "org-003") || ENTERPRISES[1];
+    const betaGm = employees.find((e) => e.orgUnitId === beta.orgId && e.position === "Генеральный директор предприятия");
+    const alphaGm = employees.find((e) => e.orgUnitId === "org-002" && e.position === "Генеральный директор предприятия");
+    function pushDemo(partial) {
+        if (employees.some((e) => e.fullName === partial.fullName))
+            return;
+        const id = `emp-demo-${String(employees.length).padStart(4, "0")}`;
+        employees.push({
+            id,
+            personnelNumber: String(900000 + employees.length),
+            salary: partial.salary,
+            hireDate: "2019-06-12",
+            employmentStatus: "active",
+            fullName: partial.fullName,
+            position: partial.position,
+            department: partial.department,
+            orgUnitId: partial.orgUnitId,
+            managerId: partial.managerId,
+            kpi: partial.kpi,
+            metrics: partial.metrics,
+            sap: { infotype0001: partial.position, infotype0008: "G12", infotype0027: `CC-${id.slice(-4)}`, lastChanged: daysAgo(14) },
+        });
+    }
+    pushDemo({
+        fullName: "Петров Алексей Сергеевич",
+        position: "Ведущий инженер",
+        department: `${beta.name} · Производство`,
+        orgUnitId: beta.orgId,
+        managerId: betaGm?.id ?? "emp-001",
+        salary: 145000,
+        kpi: { performanceScore: 34, lastReviewDate: daysAgo(45), tasksCompleted: 6, tasksOverdue: 14, overtimeHours: 4 },
+        metrics: { absenteeismDays: 12, lateCount: 9, sickDays: 8, workloadPercent: 28, teamSize: 0, budgetResponsibility: 0, criticalIncidents: 3 },
+    });
+    pushDemo({
+        fullName: "Петрова Мария Ивановна",
+        position: "Аналитик",
+        department: `${beta.name} · Планирование`,
+        orgUnitId: beta.orgId,
+        managerId: betaGm?.id ?? "emp-001",
+        salary: 118000,
+        kpi: { performanceScore: 81, lastReviewDate: daysAgo(20), tasksCompleted: 28, tasksOverdue: 1, overtimeHours: 12 },
+        metrics: { absenteeismDays: 1, lateCount: 0, sickDays: 2, workloadPercent: 78, teamSize: 0, budgetResponsibility: 0, criticalIncidents: 0 },
+    });
+    pushDemo({
+        fullName: "Сидоров Игорь Николаевич",
+        position: "Специалист",
+        department: "Завод «Альфа» · Логистика",
+        orgUnitId: "org-002",
+        managerId: alphaGm?.id ?? "emp-001",
+        salary: 98000,
+        kpi: { performanceScore: 29, lastReviewDate: daysAgo(70), tasksCompleted: 3, tasksOverdue: 18, overtimeHours: 0 },
+        metrics: { absenteeismDays: 18, lateCount: 14, sickDays: 11, workloadPercent: 22, teamSize: 0, budgetResponsibility: 0, criticalIncidents: 4 },
+    });
+})();
 const orgUnits = buildOrgUnits(employees);
+Math.random = __orgRand;
+function orgStructureSignature(list) {
+    let h = 2166136261;
+    const parts = list.map((e) => e.id + ":" + (e.managerId || "") + ":" + e.fullName).sort();
+    const s = parts.join("|");
+    for (let i = 0; i < s.length; i++) {
+        h ^= s.charCodeAt(i);
+        h = Math.imul(h, 16777619);
+    }
+    return (h >>> 0).toString(16);
+}
+const ORG_STRUCTURE_SIG = orgStructureSignature(employees);
 const mockOrgData = {
     employees,
     orgUnits,
@@ -509,13 +589,88 @@ function getDepartmentStats(orgData, deptId) {
         })),
     };
 }
-// Быстрый поиск в орг-структуре по текстовому запросу
+// Нормализация токена ФИО (Петрова/Петрову → петров)
+function normalizeNameToken(raw) {
+    let s = String(raw || "").toLowerCase().replace(/ё/g, "е").trim();
+    if (s.length < 2)
+        return s;
+    // Женские / падежные формы фамилий на -ов/-ев/-ин: только последняя гласная
+    if (s.length >= 5 && /(ова|ева|ина|ына|ову|еву|ину|ыну|овым|евым|иным|овой|евой|иной)$/.test(s)) {
+        if (/(овым|евым|иным|овой|евой|иной)$/.test(s))
+            return s.replace(/(ым|ой|ей)$/, "");
+        return s.slice(0, -1); // Петрова → петров
+    }
+    const endings = [
+        "ого", "ему", "ому", "ыми", "ими",
+        "ых", "их", "ым", "им", "ой", "ей", "ом", "ем", "ую", "юю", "ая", "яя", "ые", "ие",
+    ];
+    for (const end of endings) {
+        if (s.length - end.length >= 4 && s.endsWith(end)) {
+            s = s.slice(0, -end.length);
+            break;
+        }
+    }
+    if (s.length >= 4 && /[аяуюе]$/.test(s)) {
+        const base = s.slice(0, -1);
+        if (/(ов|ев|ин|ын)$/.test(base))
+            s = base;
+    }
+    return s;
+}
+function extractSearchTokens(query) {
+    const stop = new Set([
+        "найди", "найти", "покажи", "открой", "кто", "такой", "такая", "где", "про", "мне",
+        "сотрудник", "сотрудника", "сотрудницу", "человека", "расскажи", "информация", "по",
+        "его", "её", "ee", "карточку", "профиль", "пожалуйста", "можно", "ли",
+    ]);
+    return String(query || "")
+        .toLowerCase()
+        .replace(/ё/g, "е")
+        .split(/[^a-zа-я0-9]+/i)
+        .map((t) => t.trim())
+        .filter((t) => t.length >= 2 && !stop.has(t))
+        .map(normalizeNameToken)
+        .filter(Boolean);
+}
+// Быстрый поиск в орг-структуре по текстовому запросу (с учётом склонений)
 function searchEmployees(orgData, query) {
-    const q = query.toLowerCase();
-    return orgData.employees.filter((e) => e.fullName.toLowerCase().includes(q) ||
-        e.position.toLowerCase().includes(q) ||
-        e.department.toLowerCase().includes(q) ||
-        e.personnelNumber.includes(q));
+    const tokens = extractSearchTokens(query);
+    const raw = String(query || "").toLowerCase().replace(/ё/g, "е").trim();
+    if (!tokens.length && raw.length < 2)
+        return [];
+    const scored = [];
+    for (const e of orgData.employees) {
+        const name = e.fullName.toLowerCase().replace(/ё/g, "е");
+        const parts = name.split(/\s+/);
+        const surname = normalizeNameToken(parts[0] || "");
+        const pos = (e.position || "").toLowerCase();
+        const dep = (e.department || "").toLowerCase();
+        let score = 0;
+        for (const t of tokens) {
+            if (!t)
+                continue;
+            if (surname === t || (parts[0] || "") === t)
+                score += 12;
+            else if (surname.startsWith(t) || t.startsWith(surname) || (surname.length >= 4 && t.length >= 4 && surname.slice(0, 5) === t.slice(0, 5)))
+                score += 9;
+            else if (parts.some((p) => normalizeNameToken(p) === t || p.startsWith(t)))
+                score += 6;
+            else if (name.includes(t))
+                score += 4;
+            else if (pos.includes(t) || dep.includes(t))
+                score += 2;
+            else if (e.personnelNumber.includes(t))
+                score += 3;
+        }
+        if (!tokens.length && (name.includes(raw) || pos.includes(raw) || dep.includes(raw)))
+            score += 3;
+        if (score > 0 && String(e.id || "").startsWith("emp-demo"))
+            score += 20; // демо-якоря ассистента выше в выдаче
+        if (score > 0)
+            scored.push({ e, score });
+    }
+    scored.sort((a, b) => b.score - a.score || a.e.fullName.localeCompare(b.e.fullName, "ru"));
+    return scored.map((x) => x.e);
 }
 // Форматирование ФИО: "Фамилия Имя Отчество" → "Фамилия И.О."
 function formatShortName(fullName) {
@@ -576,16 +731,30 @@ function generateAIResponse(prompt, orgData) {
     const avgKpi = Math.round(active.reduce((s, e) => s + e.kpi.performanceScore, 0) / Math.max(active.length, 1));
     const savings = lowPerf.reduce((s, e) => s + e.salary, 0);
     const fmtMoney = (n) => (n / 1e6).toFixed(1).replace(".0", "") + " млн ₽";
-    const q = prompt.toLowerCase();
+    const q = prompt.toLowerCase().replace(/ё/g, "е");
+    const tokens = extractSearchTokens(prompt);
+    const looksLikePersonQuery = tokens.some((t) => t.length >= 4) &&
+        (q.includes("кто") || q.includes("найд") || q.includes("покаж") || q.includes("открой") ||
+            q.includes("сотрудник") || q.includes("профиль") || q.includes("карточ") ||
+            q.includes("петров") || q.includes("сидоров") || tokens.length <= 3);
 
     // Поиск сотрудника по ФИО / должности в свободном тексте
     const found = searchEmployees(orgData, prompt);
-    if (found.length === 1 && (q.includes("кто") || q.includes("сотрудник") || q.includes("профиль") || found[0].fullName.toLowerCase().split(/\s+/).some((p) => p.length > 3 && q.includes(p)))) {
+    if (found.length === 1 && (looksLikePersonQuery || found[0].fullName.toLowerCase().split(/\s+/).some((p) => {
+        const stem = normalizeNameToken(p);
+        return stem.length > 3 && (q.includes(stem) || q.includes(p));
+    }))) {
         const emp = found[0];
         return `${empSummary(emp)}\n\n**Вердикт:** ${getVerdict(emp)}\n\n*Анализ по данным SAP ERP HCM*`;
     }
+    if (found.length > 1 && looksLikePersonQuery) {
+        const top = found.slice(0, 5);
+        return `**Нашёл ${found.length} совпадений** по запросу «${prompt}»:\n\n` +
+            top.map((e, i) => `${i + 1}. **${e.fullName}** — ${e.position}, KPI ${e.kpi.performanceScore}/100 · ${e.department}`).join("\n") +
+            `\n\nУточните ФИО или скажите «открой ${top[0].fullName.split(" ")[0]}», чтобы открыть карточку.\n\n*Источник: SAP ERP HCM*`;
+    }
 
-    if (q.includes("рекоменд") || q.includes("орг") && q.includes("измен") || q.includes("что делать") || q.includes("план")) {
+    if (q.includes("рекоменд") || (q.includes("орг") && q.includes("измен")) || q.includes("что делать") || q.includes("план")) {
         return `**Рекомендации по организационным изменениям**
 
 1. **Приоритет оптимизации:** ${worstDepts.slice(0, 3).map((d) => d.deptName).join(", ")}
@@ -620,16 +789,20 @@ ${worstDepts.slice(0, 4).map((d, i) => `${i + 1}. **${d.deptName}** — риск
 *Источник: SAP ERP HCM*`;
     }
 
-    if (q.includes("низк") || q.includes("производител") || q.includes("мертв") || q.includes("риск") || q.includes("проблем") || q.includes("выяв")) {
-        return `**Зоны низкой производительности**
+    if (q.includes("низк") || q.includes("производител") || q.includes("мертв") || q.includes("риск") ||
+        q.includes("проблем") || q.includes("выяв") || q.includes("неэффект") || q.includes("не эффект") ||
+        q.includes("плох") || q.includes("слабые") || q.includes("аутсайдер") || q.includes("кто тянет") ||
+        q.includes("отстающ") || q.includes("отстают")) {
+        const namedLow = lowPerf.slice(0, 8);
+        return `**Неэффективные зоны и сотрудники**
 
 **Подразделения в зоне риска:**
 ${worstDepts.slice(0, 5).map((d, i) => `${i + 1}. **${d.deptName}** — индекс риска **${d.deadwoodScore}/100**, ср. KPI ${d.avgKpi}, просрочек: ${d.totalOverdue}`).join("\n")}
 
-**Сотрудники, требующие внимания:**
-${lowPerf.slice(0, 6).map((e, i) => `${i + 1}. **${e.fullName}** — KPI ${e.kpi.performanceScore}, просрочено ${e.kpi.tasksOverdue}, ${e.department}`).join("\n")}
+**Сотрудники с низкой эффективностью (KPI &lt; 45):**
+${namedLow.map((e, i) => `${i + 1}. **${e.fullName}** — KPI **${e.kpi.performanceScore}**, просрочено ${e.kpi.tasksOverdue}, прогулы ${e.metrics.absenteeismDays} дн. · ${e.department}`).join("\n")}
 
-**Вывод:** ${lowPerf.length} сотрудников с KPI ниже порога; критичнее всего — «${worstDepts[0]?.deptName}».
+**Вывод:** ${lowPerf.length} сотрудников ниже порога. Для разбора карточки скажите, например: «Найди Петрова» или «Открой ${namedLow[0]?.fullName.split(" ")[0] || "сотрудника"}».
 
 *Источник: SAP ERP HCM*`;
     }
@@ -694,61 +867,122 @@ function useOrg() {
 function PreviewOrgProvider({ children }) {
     const [orgData] = useState(mockOrgData);
     const [selectedEmployee, setSelectedEmployee] = useState(null);
-    const [messages, setMessages] = useState([]);
+    const [messages, setMessages] = useState([
+        {
+            role: "assistant",
+            text: "**Привет!** Я корпоративный AI-ассистент по оргструктуре SAP ERP HCM.\n\nМогу **найти сотрудника** (например, Петрова), показать **неэффективные зоны**, сравнить подразделения и открыть карточку на оргкарте.\n\nПопробуйте быстрые запросы ниже — или напишите свой.",
+        },
+    ]);
     const [aiLoading, setAiLoading] = useState(false);
     const [filterDeptId, setFilterDeptId] = useState(null);
     const [filterLevel, setFilterLevel] = useState("all");
     const [voiceListening, setVoiceListening] = useState(false);
+    const revealEmployee = useCallback((emp) => {
+        if (!emp)
+            return;
+        setFilterDeptId(emp.orgUnitId && String(emp.orgUnitId).startsWith("org-") ? (emp.orgUnitId === "org-001" ? null : emp.orgUnitId) : null);
+        // Не сбрасываем на «все» — пирамида ветки, а не 1000 карточек в ряд
+        setFilterLevel("all");
+        setSelectedEmployee(emp);
+    }, []);
     const sendMessage = useCallback(async (text) => {
-        const lower = text.toLowerCase().trim();
-        const searchTriggers = ["найди", "покажи", "открой", "найти", "кто такой", "где"];
-        const isSearch = searchTriggers.some((t) => lower.startsWith(t));
+        const lower = text.toLowerCase().replace(/ё/g, "е").trim();
+        const searchTriggers = ["найди", "покажи", "открой", "найти", "кто такой", "кто такая", "где", "карточку", "профиль"];
+        const isSearch = searchTriggers.some((t) => lower.startsWith(t) || lower.includes(" " + t + " ")) ||
+            /^(петров|сидоров|иванов|смирнов)/i.test(lower);
+        const isIneff = /неэффект|не эффект|низк|производител|мертв|риск|проблем|выяв|плох|слабые|аутсайдер|кто тянет|отстающ|отстают/.test(lower);
+        setMessages((m) => [...m, { role: "user", text }]);
+        setAiLoading(true);
+        await new Promise((r) => setTimeout(r, 450 + Math.random() * 700));
+
         if (isSearch) {
-            const namePart = text.replace(/^(найди|покажи|открой|найти|кто такой|где)\s*/i, "").trim();
-            if (namePart.length >= 2) {
-                const found = searchEmployees(orgData, namePart);
-                if (found.length) {
-                    const emp = found[0];
-                    setSelectedEmployee(emp);
-                    setMessages((m) => [
-                        ...m,
-                        { role: "user", text },
-                        { role: "assistant", text: `Нашёл:\n\n${empSummary(emp)}\n\n**Вердикт:** ${getVerdict(emp)}` },
-                    ]);
-                    return;
-                }
-                setMessages((m) => [...m, { role: "user", text }, { role: "assistant", text: `Не нашёл сотрудника по запросу «${namePart}».` }]);
+            const namePart = text.replace(/^(найди|покажи|открой|найти|кто такой|кто такая|где|карточку|профиль)\s*/i, "").trim() || text;
+            const found = searchEmployees(orgData, namePart.length >= 2 ? namePart : text);
+            if (found.length === 1) {
+                const emp = found[0];
+                revealEmployee(emp);
+                setMessages((m) => [...m, { role: "assistant", text: `Нашёл и открыл на оргкарте:\n\n${empSummary(emp)}\n\n**Вердикт:** ${getVerdict(emp)}\n\n*Карточка и KPI — в панели справа*` }]);
+                setAiLoading(false);
                 return;
             }
+            if (found.length > 1) {
+                // «Найди Петрова» = род.п. муж. фамилии, не «Петрова Мария»
+                let pick = found[0];
+                const wantFemalePetrova = /петрова\s+[а-яё]/i.test(lower);
+                const demoHit = found.find((e) => String(e.id || "").startsWith("emp-demo") &&
+                    (wantFemalePetrova ? /^Петрова\s/.test(e.fullName) : /^Петров\s/.test(e.fullName)));
+                if (demoHit)
+                    pick = demoHit;
+                else if (wantFemalePetrova) {
+                    const female = found.find((e) => /^Петрова\s/.test(e.fullName));
+                    if (female)
+                        pick = female;
+                }
+                else if (/петров/i.test(lower)) {
+                    const male = found.find((e) => /^Петров\s/.test(e.fullName));
+                    if (male)
+                        pick = male;
+                }
+                revealEmployee(pick);
+                const list = found.slice(0, 5).map((e, i) => `${i + 1}. **${e.fullName}** — KPI ${e.kpi.performanceScore}, ${e.position}`).join("\n");
+                setMessages((m) => [...m, { role: "assistant", text: `Нашёл **${found.length}** совпадений. Перенёс карту на **${pick.fullName}**.\n\n${list}\n\n${empSummary(pick)}\n\n**Вердикт:** ${getVerdict(pick)}\n\n*Клик по ФИО в списке — открыть другого*` }]);
+                setAiLoading(false);
+                return;
+            }
+            setMessages((m) => [...m, { role: "assistant", text: `Не нашёл сотрудника по запросу «${namePart}». Попробуйте фамилию целиком или спросите «кто неэффективен».` }]);
+            setAiLoading(false);
+            return;
         }
         const fireTriggers = ["уволить", "сократить", "убрать", "увольн", "можно ли"];
         if (fireTriggers.some((t) => lower.includes(t))) {
             const found = searchEmployees(orgData, text);
             if (found.length) {
                 const emp = found[0];
-                setSelectedEmployee(emp);
-                setMessages((m) => [
-                    ...m,
-                    { role: "user", text },
-                    { role: "assistant", text: `${empSummary(emp)}\n\n**Вердикт:** ${getVerdict(emp)}` },
-                ]);
+                revealEmployee(emp);
+                setMessages((m) => [...m, { role: "assistant", text: `${empSummary(emp)}\n\n**Вердикт:** ${getVerdict(emp)}` }]);
+                setAiLoading(false);
                 return;
             }
         }
-        setMessages((m) => [...m, { role: "user", text }]);
-        setAiLoading(true);
-        await new Promise((r) => setTimeout(r, 600 + Math.random() * 800));
-        setMessages((m) => [...m, { role: "assistant", text: generateAIResponse(text, orgData) }]);
+        // Person-like free text without trigger words
+        const softFound = searchEmployees(orgData, text);
+        if (softFound.length && extractSearchTokens(text).some((t) => t.length >= 5) && softFound.length <= 8) {
+            const looksName = softFound[0].fullName.toLowerCase().split(/\s+/).some((p) => lower.includes(normalizeNameToken(p)) || lower.includes(p));
+            if (looksName) {
+                const emp = softFound[0];
+                revealEmployee(emp);
+                setMessages((m) => [...m, { role: "assistant", text: `${empSummary(emp)}\n\n**Вердикт:** ${getVerdict(emp)}\n\n*Карточка открыта на оргкарте*` }]);
+                setAiLoading(false);
+                return;
+            }
+        }
+        const reply = generateAIResponse(text, orgData);
+        if (isIneff) {
+            const active = orgData.employees.filter((e) => e.employmentStatus === "active");
+            const lowPerf = active
+                .filter((e) => e.kpi.performanceScore < 45)
+                .sort((a, b) => a.kpi.performanceScore - b.kpi.performanceScore);
+            const demoLow = lowPerf.find((e) => String(e.id || "").startsWith("emp-demo")) || lowPerf[0];
+            if (demoLow)
+                revealEmployee(demoLow);
+        }
+        setMessages((m) => [...m, { role: "assistant", text: reply }]);
         setAiLoading(false);
-    }, [orgData]);
+    }, [orgData, revealEmployee]);
     const value = useMemo(() => ({
         orgData,
         selectedEmployee,
         selectEmployee: setSelectedEmployee,
+        revealEmployee,
         messages,
         aiLoading,
         sendMessage,
-        clearMessages: () => setMessages([]),
+        clearMessages: () => setMessages([
+            {
+                role: "assistant",
+                text: "**Готов помочь.** Найду сотрудника, покажу неэффективные зоны или разберу подразделение. Например: «Найди Петрова» или «Кто неэффективен?»",
+            },
+        ]),
         filterDeptId,
         setFilterDeptId,
         filterLevel,
@@ -757,7 +991,7 @@ function PreviewOrgProvider({ children }) {
         setAIProvider: () => { },
         voiceListening,
         setVoiceListening,
-    }), [orgData, selectedEmployee, messages, aiLoading, sendMessage, filterDeptId, filterLevel, voiceListening]);
+    }), [orgData, selectedEmployee, messages, aiLoading, sendMessage, revealEmployee, filterDeptId, filterLevel, voiceListening]);
     return React.createElement(OrgContext.Provider, { value: value }, children);
 }
 
@@ -975,12 +1209,33 @@ const NODE_W = 190;
 const NODE_H = 108;
 const ENT_W = 210;
 const ENT_H = 88;
-const LAYOUT_GAP_Y = 155;
+/** Вертикальный шаг пирамиды: родитель выше, дети строго ниже */
+const LAYOUT_GAP_Y = 196;
+const SIB_GAP = 36;
+/** Если прямых подчинённых много — раскладка сеткой вниз, а не одной бесконечной полосой */
+const MAX_KIDS_PER_ROW = 7;
+const APEX_ID = "emp-001";
 function entNodeId(orgId) {
     return `ent-${orgId}`;
 }
 function nodeDims(node) {
     return node.kind === "enterprise" ? { w: ENT_W, h: ENT_H } : { w: NODE_W, h: NODE_H };
+}
+function roleRank(item) {
+    if (item.kind === "enterprise")
+        return 0;
+    const p = (item.employee?.position || "").toLowerCase();
+    if (p.includes("генеральный директор") && !p.includes("предприятия"))
+        return 0;
+    if (p.includes("генеральный директор предприятия"))
+        return 1;
+    if (p.includes("директор"))
+        return 2;
+    if (p.includes("руководитель направления") || p.includes("руководитель продукта") || p.includes("директор группы"))
+        return 3;
+    if (p.includes("руководитель функции"))
+        return 4;
+    return 5;
 }
 function isDescendantOf(emp, ancestorId, allEmployees) {
     const byId = new Map(allEmployees.map((e) => [e.id, e]));
@@ -1021,15 +1276,23 @@ function buildGraph(orgData, filterDeptId, filterLevel) {
         if (gm && empIds.has(gm.id)) {
             const eid = entNodeId(ent.id);
             if (!items.some((i) => i.id === eid)) {
-                items.push({ id: eid, parentId: "emp-001", kind: "enterprise", enterprise: ent });
+                items.push({ id: eid, parentId: APEX_ID, kind: "enterprise", enterprise: ent });
             }
+            // ГД предприятия висит под карточкой предприятия → пирамида: CEO → предприятие → ГД → …
+            const gmItem = items.find((i) => i.id === gm.id);
+            if (gmItem)
+                gmItem.parentId = eid;
         }
     }
     const itemsById = new Map(items.map((i) => [i.id, i]));
     const getDepth = (id) => {
         let depth = 0;
         let cur = itemsById.get(id);
+        const seen = new Set();
         while (cur?.parentId) {
+            if (seen.has(cur.id))
+                break;
+            seen.add(cur.id);
             depth++;
             cur = itemsById.get(cur.parentId);
             if (!cur)
@@ -1047,6 +1310,27 @@ function buildGraph(orgData, filterDeptId, filterLevel) {
     else if (filterLevel === "functions")
         visible = items.filter((i) => getDepth(i.id) <= 5);
     const visibleIds = new Set(visible.map((i) => i.id));
+    // Сироты и оборванные связи → под вершину (CEO), чтобы не было горизонтального «леса корней»
+    for (const item of visible) {
+        if (item.id === APEX_ID) {
+            item.parentId = null;
+            continue;
+        }
+        if (!item.parentId || !visibleIds.has(item.parentId)) {
+            let climb = itemsById.get(item.id);
+            let resolved = null;
+            const seen = new Set();
+            while (climb?.parentId && !seen.has(climb.id)) {
+                seen.add(climb.id);
+                if (visibleIds.has(climb.parentId)) {
+                    resolved = climb.parentId;
+                    break;
+                }
+                climb = itemsById.get(climb.parentId);
+            }
+            item.parentId = resolved || (visibleIds.has(APEX_ID) ? APEX_ID : null);
+        }
+    }
     const childrenMap = new Map();
     for (const item of visible) {
         const pid = item.parentId && visibleIds.has(item.parentId) ? item.parentId : "__root__";
@@ -1054,28 +1338,63 @@ function buildGraph(orgData, filterDeptId, filterLevel) {
             childrenMap.set(pid, []);
         childrenMap.get(pid).push(item);
     }
-    const SIB_GAP = 40;
+    for (const [, kids] of childrenMap) {
+        kids.sort((a, b) => roleRank(a) - roleRank(b) || String(a.employee?.fullName || a.enterprise?.name || "").localeCompare(String(b.employee?.fullName || b.enterprise?.name || ""), "ru"));
+    }
     const subtreeWidth = new Map();
+    /** Сетка вниз только если все дети — листья (иначе пирамида «плывёт» по Y) */
+    function packAsGrid(kids) {
+        return kids.length > MAX_KIDS_PER_ROW && kids.every((c) => !(childrenMap.get(c.id) || []).length);
+    }
     function calcWidth(id) {
         if (subtreeWidth.has(id))
             return subtreeWidth.get(id);
         const item = itemsById.get(id);
         const selfW = item ? nodeDims(item).w : NODE_W;
-        const kids = (childrenMap.get(id) || []).map((c) => c.id);
-        const w = kids.length
-            ? Math.max(selfW, kids.reduce((s, cid) => s + calcWidth(cid), 0) + (kids.length - 1) * SIB_GAP)
-            : selfW;
+        const kids = childrenMap.get(id) || [];
+        if (!kids.length) {
+            subtreeWidth.set(id, selfW);
+            return selfW;
+        }
+        kids.forEach((c) => calcWidth(c.id));
+        let w;
+        if (packAsGrid(kids)) {
+            const rows = [];
+            for (let i = 0; i < kids.length; i += MAX_KIDS_PER_ROW)
+                rows.push(kids.slice(i, i + MAX_KIDS_PER_ROW));
+            w = Math.max(selfW, ...rows.map((row) => row.reduce((s, c) => s + subtreeWidth.get(c.id), 0) + (row.length - 1) * SIB_GAP));
+        }
+        else {
+            w = Math.max(selfW, kids.reduce((s, c) => s + subtreeWidth.get(c.id), 0) + (kids.length - 1) * SIB_GAP);
+        }
         subtreeWidth.set(id, w);
         return w;
     }
     const positionMap = new Map();
     function layout(id, x, y) {
         const item = itemsById.get(id);
-        const { w } = item ? nodeDims(item) : { w: NODE_W };
-        positionMap.set(id, { x: x - w / 2, y });
+        const dims = item ? nodeDims(item) : { w: NODE_W, h: NODE_H };
+        positionMap.set(id, { x: x - dims.w / 2, y });
         const kids = childrenMap.get(id) || [];
         if (!kids.length)
             return;
+        if (packAsGrid(kids)) {
+            const rows = [];
+            for (let i = 0; i < kids.length; i += MAX_KIDS_PER_ROW)
+                rows.push(kids.slice(i, i + MAX_KIDS_PER_ROW));
+            let rowY = y + LAYOUT_GAP_Y;
+            rows.forEach((row) => {
+                const rowW = row.reduce((s, c) => s + subtreeWidth.get(c.id), 0) + (row.length - 1) * SIB_GAP;
+                let cx = x - rowW / 2;
+                for (const c of row) {
+                    const cw = subtreeWidth.get(c.id);
+                    layout(c.id, cx + cw / 2, rowY);
+                    cx += cw + SIB_GAP;
+                }
+                rowY += dims.h + 28;
+            });
+            return;
+        }
         const totalW = kids.reduce((s, c) => s + subtreeWidth.get(c.id), 0) + (kids.length - 1) * SIB_GAP;
         let cx = x - totalW / 2;
         for (const c of kids) {
@@ -1084,20 +1403,39 @@ function buildGraph(orgData, filterDeptId, filterLevel) {
             cx += cw + SIB_GAP;
         }
     }
-    const rootKids = childrenMap.get("__root__") || [];
+    // Одна вершина пирамиды: CEO, если есть; иначе единственный корень
+    let rootKids = childrenMap.get("__root__") || [];
+    if (visibleIds.has(APEX_ID)) {
+        const apex = visible.find((i) => i.id === APEX_ID);
+        const others = rootKids.filter((i) => i.id !== APEX_ID);
+        if (apex && others.length) {
+            for (const o of others) {
+                o.parentId = APEX_ID;
+                if (!childrenMap.has(APEX_ID))
+                    childrenMap.set(APEX_ID, []);
+                childrenMap.get(APEX_ID).push(o);
+            }
+            childrenMap.get(APEX_ID).sort((a, b) => roleRank(a) - roleRank(b));
+            childrenMap.set("__root__", [apex]);
+            rootKids = [apex];
+            subtreeWidth.clear();
+        }
+    }
     if (rootKids.length) {
-        const totalW = rootKids.reduce((s, c) => s + calcWidth(c.id), 0) + (rootKids.length - 1) * SIB_GAP;
-        let cx = totalW / 2;
+        rootKids.forEach((c) => calcWidth(c.id));
+        const totalW = rootKids.reduce((s, c) => s + subtreeWidth.get(c.id), 0) + (rootKids.length - 1) * SIB_GAP;
+        let cx = 0;
+        const shiftX = 80;
         for (const c of rootKids) {
-            const cw = calcWidth(c.id);
-            layout(c.id, cx, 40);
+            const cw = subtreeWidth.get(c.id);
+            layout(c.id, shiftX + cx + cw / 2, 48);
             cx += cw + SIB_GAP;
         }
     }
     const nodes = [];
     const edges = [];
     for (const item of visible) {
-        const pos = positionMap.get(item.id) || { x: 0, y: 40 };
+        const pos = positionMap.get(item.id) || { x: 0, y: 48 };
         if (item.kind === "enterprise") {
             nodes.push({ id: item.id, kind: "enterprise", enterprise: item.enterprise, x: pos.x, y: pos.y });
         }
@@ -1297,16 +1635,46 @@ function EnterpriseCard({ enterprise, theme, selected, onClick, }) {
 
 
 // --- src/components/org-chart/OrgChartCanvas.tsx ---
+const ORG_LAYOUT_KEY = "org-chart-layout-v2";
+const orgLayoutApi = { save: null };
+function readSavedLayout() {
+    try {
+        const raw = localStorage.getItem(ORG_LAYOUT_KEY);
+        if (!raw)
+            return null;
+        const data = JSON.parse(raw);
+        if (!data || !data.positions || data.sig !== ORG_STRUCTURE_SIG)
+            return null;
+        return data.positions;
+    }
+    catch (e) {
+        return null;
+    }
+}
+function positionsFromGraph(nodes, saved) {
+    const map = new Map();
+    for (const n of nodes) {
+        const s = saved && saved[n.id];
+        if (s && Number.isFinite(s.x) && Number.isFinite(s.y))
+            map.set(n.id, { x: s.x, y: s.y });
+        else
+            map.set(n.id, { x: n.x, y: n.y });
+    }
+    return map;
+}
 function OrgChartCanvas({ graph, theme, selectEmployee, selectedEmployeeId, selectedEnterpriseId, orgData, }) {
     const t = themeTokens[theme];
     const containerRef = useRef(null);
-    const [positions, setPositions] = useState(() => new Map(graph.nodes.map((n) => [n.id, { x: n.x, y: n.y }])));
+    const [positions, setPositions] = useState(() => positionsFromGraph(graph.nodes, readSavedLayout()));
     const [transform, setTransform] = useState({ x: 60, y: 20, scale: 0.75 });
     const [interacting, setInteracting] = useState(null);
+    const [layoutNote, setLayoutNote] = useState("");
     const dragRef = useRef(null);
     const panRef = useRef(null);
+    /** После реального драга глушим click → иначе selectEmployee дёргает камеру */
+    const suppressClickRef = useRef(false);
     useEffect(() => {
-        setPositions(new Map(graph.nodes.map((n) => [n.id, { x: n.x, y: n.y }])));
+        setPositions(positionsFromGraph(graph.nodes, readSavedLayout()));
     }, [graph]);
     const nodesById = useMemo(() => new Map(graph.nodes.map((n) => [n.id, n])), [graph.nodes]);
     const fitView = useCallback(() => {
@@ -1318,7 +1686,7 @@ function OrgChartCanvas({ graph, theme, selectEmployee, selectedEmployeeId, sele
             return;
         let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
         for (const n of graph.nodes) {
-            const p = { x: n.x, y: n.y };
+            const p = positionsRef.current.get(n.id) ?? { x: n.x, y: n.y };
             const { w, h } = nodeDims(n);
             minX = Math.min(minX, p.x);
             minY = Math.min(minY, p.y);
@@ -1327,10 +1695,14 @@ function OrgChartCanvas({ graph, theme, selectEmployee, selectedEmployeeId, sele
         }
         const bw = maxX - minX + 80;
         const bh = maxY - minY + 80;
-        const scale = Math.min(1.2, Math.max(0.25, Math.min(clientWidth / bw, clientHeight / bh) * 0.9));
+        // Пирамида: не сжимаем в «горизонтальную нитку» — опираемся на высоту, мин. масштаб ~0.55
+        const scaleH = (clientHeight / Math.max(bh, 1)) * 0.88;
+        const scaleW = (clientWidth / Math.max(bw, 1)) * 0.92;
+        const scale = Math.min(1.4, Math.max(0.08, Math.min(scaleH, scaleW)));
+        const treeCx = (minX + maxX) / 2;
         setTransform({
-            x: (clientWidth - bw * scale) / 2 - minX * scale + 40,
-            y: 30,
+            x: clientWidth / 2 - treeCx * scale,
+            y: Math.max(20, (clientHeight - bh * scale) / 2 - minY * scale + 10),
             scale,
         });
     }, [graph]);
@@ -1348,6 +1720,60 @@ function OrgChartCanvas({ graph, theme, selectEmployee, selectedEmployeeId, sele
         ro.observe(el);
         return () => ro.disconnect();
     }, [fitView]);
+    // Перенос карты на выбранного сотрудника (из AI / клика)
+    const focusSeq = useRef(0);
+    const positionsRef = useRef(positions);
+    positionsRef.current = positions;
+    useEffect(() => {
+        orgLayoutApi.save = () => {
+            const positionsObj = {};
+            positionsRef.current.forEach((p, id) => {
+                positionsObj[id] = { x: Math.round(p.x * 10) / 10, y: Math.round(p.y * 10) / 10 };
+            });
+            localStorage.setItem(ORG_LAYOUT_KEY, JSON.stringify({
+                sig: ORG_STRUCTURE_SIG,
+                positions: positionsObj,
+                savedAt: Date.now(),
+            }));
+            setLayoutNote("Раскладка сохранена");
+            window.setTimeout(() => setLayoutNote(""), 1800);
+        };
+        return () => {
+            orgLayoutApi.save = null;
+        };
+    }, []);
+    useEffect(() => {
+        if (!selectedEmployeeId)
+            return;
+        const el = containerRef.current;
+        if (!el || el.clientWidth < 20)
+            return;
+        const node = graph.nodes.find((n) => n.id === selectedEmployeeId ||
+            (n.kind === "employee" && n.employee && n.employee.id === selectedEmployeeId));
+        if (!node)
+            return;
+        const seq = ++focusSeq.current;
+        const run = () => {
+            if (focusSeq.current !== seq)
+                return;
+            const pos = positionsRef.current.get(node.id) ?? { x: node.x, y: node.y };
+            const { w, h } = nodeDims(node);
+            const targetScale = 0.95;
+            const cx = pos.x + w / 2;
+            const cy = pos.y + h / 2;
+            setTransform({
+                scale: targetScale,
+                x: el.clientWidth / 2 - cx * targetScale,
+                y: Math.max(24, el.clientHeight * 0.38 - cy * targetScale),
+            });
+        };
+        // после сброса фильтров граф/позиции обновляются кадром позже
+        const t0 = requestAnimationFrame(() => {
+            run();
+            setTimeout(run, 120);
+        });
+        return () => cancelAnimationFrame(t0);
+    }, [selectedEmployeeId, graph.nodes]);
     const toWorld = useCallback((clientX, clientY) => {
         const rect = containerRef.current.getBoundingClientRect();
         return {
@@ -1369,6 +1795,8 @@ function OrgChartCanvas({ graph, theme, selectEmployee, selectedEmployeeId, sele
             const ny = world.y - oy;
             const dx = nx - start.x;
             const dy = ny - start.y;
+            if (Math.abs(dx) > 3 || Math.abs(dy) > 3)
+                suppressClickRef.current = true;
             setPositions((prev) => {
                 const next = new Map(prev);
                 next.set(nodeId, { x: nx, y: ny });
@@ -1381,6 +1809,8 @@ function OrgChartCanvas({ graph, theme, selectEmployee, selectedEmployeeId, sele
         }
         const pan = panRef.current;
         if (pan) {
+            if (Math.abs(e.clientX - pan.x) > 3 || Math.abs(e.clientY - pan.y) > 3)
+                suppressClickRef.current = true;
             setTransform((tr) => ({ ...tr, x: pan.tx + (e.clientX - pan.x), y: pan.ty + (e.clientY - pan.y) }));
         }
     }, [toWorld]);
@@ -1395,9 +1825,18 @@ function OrgChartCanvas({ graph, theme, selectEmployee, selectedEmployeeId, sele
             document.removeEventListener("mouseup", onUp);
         };
     }, [interacting, onMouseMove, endInteraction]);
+    const handleNodeSelect = useCallback((employee) => {
+        if (suppressClickRef.current) {
+            suppressClickRef.current = false;
+            return;
+        }
+        if (employee)
+            selectEmployee(employee);
+    }, [selectEmployee]);
     const onMouseDown = (e) => {
         if (e.button !== 0)
             return;
+        suppressClickRef.current = false;
         const nodeEl = e.target.closest("[data-node-id]");
         if (nodeEl) {
             const nodeId = nodeEl.dataset.nodeId;
@@ -1427,7 +1866,7 @@ function OrgChartCanvas({ graph, theme, selectEmployee, selectedEmployeeId, sele
         const my = e.clientY - rect.top;
         const factor = e.deltaY < 0 ? 1.08 : 0.92;
         setTransform((tr) => {
-            const scale = Math.min(2, Math.max(0.15, tr.scale * factor));
+            const scale = Math.min(5, Math.max(0.04, tr.scale * factor));
             const wx = (mx - tr.x) / tr.scale;
             const wy = (my - tr.y) / tr.scale;
             return { scale, x: mx - wx * scale, y: my - wy * scale };
@@ -1449,7 +1888,21 @@ function OrgChartCanvas({ graph, theme, selectEmployee, selectedEmployeeId, sele
             position: "relative",
             background: t.flowBg,
             cursor: interacting === "pan" || interacting === "drag" ? "grabbing" : "default",
-        }, onMouseDown: onMouseDown, onMouseUp: endInteraction, onMouseLeave: endInteraction, onWheel: onWheel },
+        }, onMouseDown: onMouseDown, onMouseUp: endInteraction, onWheel: onWheel },
+        layoutNote && React.createElement("div", { style: {
+                position: "absolute",
+                top: 12,
+                left: "50%",
+                transform: "translateX(-50%)",
+                zIndex: 6,
+                background: "#0b2a30",
+                color: "#fff",
+                fontSize: 12,
+                fontWeight: 600,
+                padding: "8px 14px",
+                borderRadius: 10,
+                pointerEvents: "none",
+            } }, layoutNote),
         React.createElement("div", { style: {
                 position: "absolute",
                 inset: 0,
@@ -1490,15 +1943,15 @@ function OrgChartCanvas({ graph, theme, selectEmployee, selectedEmployeeId, sele
                 if (node.kind === "enterprise") {
                     const gm = orgData.employees.find((e) => e.orgUnitId === node.enterprise.id && e.position === "Генеральный директор предприятия");
                     return (React.createElement("div", { key: node.id, "data-node-id": node.id, style: { position: "absolute", left: p.x, top: p.y, zIndex: isSelected ? 2 : 1 } },
-                        React.createElement(EnterpriseCard, { enterprise: node.enterprise, theme: theme, selected: isSelected, onClick: () => gm && selectEmployee(gm) })));
+                        React.createElement(EnterpriseCard, { enterprise: node.enterprise, theme: theme, selected: isSelected, onClick: () => handleNodeSelect(gm) })));
                 }
                 return (React.createElement("div", { key: node.id, "data-node-id": node.id, style: { position: "absolute", left: p.x, top: p.y, zIndex: isSelected ? 2 : 1 } },
-                    React.createElement(EmployeeCard, { employee: node.employee, theme: theme, selected: isSelected, onClick: () => selectEmployee(node.employee) })));
+                    React.createElement(EmployeeCard, { employee: node.employee, theme: theme, selected: isSelected, onClick: () => handleNodeSelect(node.employee) })));
             })),
         React.createElement("div", { style: { position: "absolute", bottom: 16, left: 16, display: "flex", gap: 6, zIndex: 5 } }, [
-            { label: "−", fn: () => setTransform((tr) => ({ ...tr, scale: Math.max(0.15, tr.scale * 0.85) })) },
+            { label: "−", fn: () => setTransform((tr) => ({ ...tr, scale: Math.max(0.04, tr.scale * 0.85) })) },
             { label: "⊙", fn: () => fitView() },
-            { label: "+", fn: () => setTransform((tr) => ({ ...tr, scale: Math.min(2, tr.scale * 1.15) })) },
+            { label: "+", fn: () => setTransform((tr) => ({ ...tr, scale: Math.min(5, tr.scale * 1.15) })) },
         ].map((btn) => (React.createElement("button", { key: btn.label, onClick: btn.fn, style: {
                 width: 32,
                 height: 32,
@@ -1892,8 +2345,37 @@ function OrgPanel({ theme }) {
 
 
 // --- src/app/AIPanel.tsx ---
+function renderAssistantText(text, orgData, revealEmployee) {
+    const parts = String(text || "").split(/(\*\*[^*]+\*\*)/g);
+    return parts.map((part, i) => {
+        const m = part.match(/^\*\*([^*]+)\*\*$/);
+        if (!m) {
+            return React.createElement("span", { key: i, dangerouslySetInnerHTML: { __html: part.replace(/\n/g, "<br>") } });
+        }
+        const label = m[1].trim();
+        const looksName = /[а-яё]/i.test(label) && label.length >= 5 && !/^\d/.test(label) &&
+            !/подраздел|зонах|сводк|источник|вердикт|показател|сотрудник/i.test(label);
+        let hit = null;
+        if (looksName && orgData && revealEmployee) {
+            const found = searchEmployees(orgData, label);
+            hit = found.find((e) => e.fullName === label) ||
+                found.find((e) => e.fullName.toLowerCase().startsWith(label.toLowerCase())) ||
+                (label.split(/\s+/).length >= 2 ? found[0] : null);
+        }
+        if (hit) {
+            return React.createElement("button", {
+                key: i,
+                type: "button",
+                className: "ai-name-link",
+                onClick: (e) => { e.stopPropagation(); revealEmployee(hit); },
+                title: "Открыть на оргкарте и в панели",
+            }, label);
+        }
+        return React.createElement("strong", { key: i }, label);
+    });
+}
 function AIPanel({ theme, previewMode = false }) {
-    const { messages, aiLoading, aiProvider, sendMessage, setAIProvider, voiceListening, setVoiceListening, clearMessages, selectedEmployee } = useOrg();
+    const { messages, aiLoading, aiProvider, sendMessage, setAIProvider, voiceListening, setVoiceListening, clearMessages, selectedEmployee, orgData, revealEmployee } = useOrg();
     const orgPanelShift = selectedEmployee ? PANEL_W + 48 : 0;
     const [input, setInput] = useState("");
     const [minimized, setMinimized] = useState(false);
@@ -2038,12 +2520,26 @@ function AIPanel({ theme, previewMode = false }) {
         }
     };
     const quickActions = [
+        "Найди Петрова",
+        "Кто неэффективен?",
         "Анализ эффективности подразделений",
-        "Выявить зоны низкой производительности",
         "Оценить потенциал оптимизации",
-        "Рекомендации по орг. изменениям",
     ];
-    return (React.createElement("div", { className: "fixed z-50 w-[440px] max-h-[85vh] border rounded-[14px] flex flex-col overflow-hidden", style: {
+    const thinkingPhrases = [
+        "Сверяю KPI в SAP ERP HCM…",
+        "Смотрю прогулы и просрочки…",
+        "Сравниваю подразделения…",
+        "Собираю карточку сотрудника…",
+    ];
+    const [thinkIdx, setThinkIdx] = useState(0);
+    useEffect(() => {
+        if (!aiLoading)
+            return;
+        setThinkIdx(0);
+        const id = setInterval(() => setThinkIdx((i) => (i + 1) % thinkingPhrases.length), 900);
+        return () => clearInterval(id);
+    }, [aiLoading]);
+    return (React.createElement("div", { className: "fixed z-50 w-[440px] max-h-[85vh] border rounded-[14px] flex flex-col overflow-hidden ai-alive-panel", style: {
             left: `calc(100vw - 464px - ${orgPanelShift}px + ${pos.x}px)`,
             bottom: `calc(24px - ${pos.y}px)`,
             background: t.aiPanelBg,
@@ -2054,25 +2550,18 @@ function AIPanel({ theme, previewMode = false }) {
             cursor: dragging.current ? "grabbing" : undefined,
         } },
         React.createElement("div", { onMouseDown: onMouseDown, className: "px-4 py-3 border-b flex items-center gap-2.5 cursor-grab active:cursor-grabbing select-none", style: { borderColor: t.separatorColor, background: t.aiHeaderBg, ...glass(t) } },
-            React.createElement("div", { className: "w-7 h-7 rounded-md flex items-center justify-center text-[10px] font-bold cursor-pointer", style: { background: S.primary, color: S.white }, onClick: () => setMinimized(!minimized) }, "AI"),
-            React.createElement("div", { className: "flex-1 cursor-pointer", onClick: () => setMinimized(!minimized) },
-                React.createElement("div", { className: "text-sm font-bold", style: { color: t.text } }, "AI \u0410\u0441\u0438\u0441\u0442\u0435\u043D\u0442"),
-                React.createElement("div", { className: "text-[10px]", style: { color: t.textAccent } }, "Корпоративный AI-ассистент")),
-            React.createElement("button", { onClick: (e) => { e.stopPropagation(); clearMessages(); }, className: "p-1.5 rounded-lg transition-all hover:opacity-80", style: { color: t.textSecondary, background: t.cardBg }, title: "\u0421\u0431\u0440\u043E\u0441\u0438\u0442\u044C \u0441\u0435\u0441\u0441\u0438\u044E" },
+            React.createElement("div", { className: "w-7 h-7 rounded-md flex items-center justify-center text-[10px] font-bold cursor-pointer", style: { background: S.primary, color: S.white }, onClick: () => setMinimized(!minimized) },
+                "AI"),
+            React.createElement("div", { className: "flex-1 cursor-pointer min-w-0", onClick: () => setMinimized(!minimized) },
+                React.createElement("div", { className: "text-sm font-bold", style: { color: t.text } }, "AI-ассистент"),
+                React.createElement("div", { className: "text-[10px] flex items-center gap-1.5", style: { color: t.textAccent } },
+                    React.createElement("span", { className: "ai-online-dot" }),
+                    aiLoading ? "Думаю…" : "Онлайн · SAP ERP HCM")),
+            React.createElement("button", { onClick: (e) => { e.stopPropagation(); clearMessages(); }, className: "p-1.5 rounded-lg transition-all hover:opacity-80", style: { color: t.textSecondary, background: t.cardBg }, title: "Сбросить сессию" },
                 React.createElement(Trash2, { size: 14 })),
             React.createElement("button", { style: { color: t.textSecondary }, className: "hover:opacity-70", onClick: () => setMinimized(!minimized) }, minimized ? React.createElement(ChevronUp, { size: 16 }) : React.createElement(ChevronDown, { size: 16 }))),
         !minimized && (React.createElement(React.Fragment, null,
-            React.createElement("div", { ref: chatRef, className: "overflow-y-auto px-4 py-3 space-y-3", style: { maxHeight: "62vh" } },
-                messages.length === 0 && (React.createElement("div", { className: "text-center py-6" },
-                    React.createElement("svg", { className: "mx-auto mb-3", width: "40", height: "40", viewBox: "0 0 40 40", fill: "none" },
-                        React.createElement("rect", { width: "40", height: "40", rx: "10", fill: S.primary, opacity: 0.2 }),
-                        React.createElement("rect", { x: "2", y: "2", width: "36", height: "36", rx: "8", stroke: S.primary, strokeWidth: "0.5" }),
-                        React.createElement("circle", { cx: "14", cy: "20", r: "2", fill: S.primary }),
-                        React.createElement("circle", { cx: "20", cy: "20", r: "2", fill: S.primary }),
-                        React.createElement("circle", { cx: "26", cy: "20", r: "2", fill: S.primary })),
-                    React.createElement("p", { className: "text-sm mb-1", style: { color: t.text } }, "AI \u0410\u0441\u0438\u0441\u0442\u0435\u043D\u0442"),
-                    React.createElement("p", { className: "text-xs mb-4", style: { color: t.textSecondary } }, "\u0418\u043D\u0442\u0435\u0433\u0440\u0438\u0440\u043E\u0432\u0430\u043D \u0441 SAP ERP HCM. \u0410\u043D\u0430\u043B\u0438\u0437\u0438\u0440\u0443\u044E KPI, \u0437\u0430\u0433\u0440\u0443\u0437\u043A\u0443, \u043F\u0440\u043E\u0433\u0443\u043B\u044B. \u0412\u044B\u044F\u0432\u043B\u044F\u044E \u0437\u043E\u043D\u044B \u043D\u0438\u0437\u043A\u043E\u0439 \u044D\u0444\u0444\u0435\u043A\u0442\u0438\u0432\u043D\u043E\u0441\u0442\u0438."),
-                    React.createElement("div", { className: "flex flex-wrap gap-1.5 justify-center" }, quickActions.map((action) => (React.createElement("button", { key: action, onClick: () => sendMessage(action), disabled: aiLoading, className: "text-[10px] px-2.5 py-1.5 rounded-full transition-all hover:opacity-80 border", style: { background: t.quickActionBg, borderColor: t.quickActionBorder, color: t.quickActionText } }, action)))))),
+            React.createElement("div", { ref: chatRef, className: "overflow-y-auto px-4 py-3 space-y-3", style: { maxHeight: "52vh" } },
                 messages.map((msg, i) => (React.createElement("div", { key: i, className: `flex gap-2 ${msg.role === "user" ? "justify-end" : ""}` },
                     msg.role === "assistant" && (React.createElement("div", { className: "w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5", style: { background: S.primary } },
                         React.createElement(Bot, { size: 12, style: { color: S.white } }))),
@@ -2082,15 +2571,18 @@ function AIPanel({ theme, previewMode = false }) {
                             border: msg.role === "user" ? "none" : `1px solid ${t.chatAssistantBorder}`,
                             ...(msg.role === "assistant" ? glass(t) : {}),
                         } },
-                        React.createElement("div", { dangerouslySetInnerHTML: { __html: msg.text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>").replace(/\n/g, "<br>") } })),
+                        React.createElement("div", null, msg.role === "assistant"
+                            ? renderAssistantText(msg.text, orgData, revealEmployee)
+                            : React.createElement("span", { dangerouslySetInnerHTML: { __html: msg.text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>").replace(/\n/g, "<br>") } }))),
                     msg.role === "user" && (React.createElement("div", { className: "w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5", style: { background: S.primary } },
                         React.createElement(User, { size: 12, style: { color: S.white } })))))),
-                aiLoading && (React.createElement("div", { className: "flex items-center gap-2 text-xs", style: { color: t.textSecondary } },
+                aiLoading && (React.createElement("div", { className: "flex items-center gap-2 text-xs ai-thinking", style: { color: t.textSecondary } },
                     React.createElement(Loader2, { size: 12, className: "animate-spin" }),
-                    "Анализирую данные SAP ERP HCM..."))),
+                    thinkingPhrases[thinkIdx]))),
+            React.createElement("div", { className: "px-3 pb-2 flex flex-wrap gap-1.5" }, quickActions.map((action) => (React.createElement("button", { key: action, onClick: () => sendMessage(action), disabled: aiLoading, className: "text-[10px] px-2.5 py-1.5 rounded-full transition-all hover:opacity-80 border", style: { background: t.quickActionBg, borderColor: t.quickActionBorder, color: t.quickActionText } }, action)))),
             React.createElement("div", { className: "p-3 border-t flex items-center gap-2", style: { borderColor: t.separatorColor, background: t.cardBg, ...glass(t) } },
                 React.createElement("button", { onClick: handleVoiceToggle, className: "p-2 rounded-lg transition-all", style: { background: voiceListening ? S.danger : t.cardBg, color: voiceListening ? S.white : t.textSecondary, border: `1px solid ${voiceListening ? S.danger : t.inputBorder}` } }, voiceListening ? React.createElement(MicOff, { size: 16 }) : React.createElement(Mic, { size: 16 })),
-                React.createElement("input", { type: "text", value: input, onChange: (e) => setInput(e.target.value), onKeyDown: handleKeyDown, placeholder: voiceListening ? "Говорите..." : "Задайте вопрос по оргструктуре...", className: "flex-1 text-sm px-3 py-2 rounded-lg border focus:outline-none", style: { background: t.inputBg, borderColor: t.inputBorder, color: t.text }, disabled: aiLoading || voiceListening }),
+                React.createElement("input", { type: "text", value: input, onChange: (e) => setInput(e.target.value), onKeyDown: handleKeyDown, placeholder: voiceListening ? "Говорите..." : "Например: найди Петрова…", className: "flex-1 text-sm px-3 py-2 rounded-lg border focus:outline-none", style: { background: t.inputBg, borderColor: t.inputBorder, color: t.text }, disabled: aiLoading || voiceListening }),
                 React.createElement("button", { onClick: handleSend, disabled: !input.trim() || aiLoading, className: "p-2 rounded-lg transition-all disabled:opacity-30", style: { background: input.trim() ? S.primary : t.cardBg, color: S.white } },
                     React.createElement(Send, { size: 16 })))))));
 }
@@ -2249,7 +2741,7 @@ function BentoHeader({ theme, orgData, filterDeptId, setFilterDeptId, filterLeve
                 alignItems: "stretch",
             } },
             React.createElement("div", { style: { ...bentoCell(t), padding: "12px 16px", display: "flex", alignItems: "center", gap: 8, minWidth: 0 } },
-                logoSrc && React.createElement("img", { src: logoSrc, alt: "SB", style: { height: 30, width: 30, flexShrink: 0, display: "block", objectFit: "contain" } }),
+                logoSrc && React.createElement("img", { src: logoSrc, alt: "SB", title: "Сохранить раскладку блоков", style: { height: 30, width: 30, flexShrink: 0, display: "block", objectFit: "contain", cursor: "pointer" }, onClick: (e) => { e.stopPropagation(); orgLayoutApi.save && orgLayoutApi.save(); } }),
                 React.createElement("span", { style: { fontSize: 18, fontWeight: 500, color: t.headerText, lineHeight: 1.15, margin: 0, minWidth: 0 } }, "AI Аналитика Орг Структуры")),
             React.createElement("div", null),
             React.createElement("div", { style: { ...bentoCell(t), padding: "10px 14px", display: "flex", alignItems: "center", gap: 14, flexShrink: 0 } },
