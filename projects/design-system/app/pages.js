@@ -89,7 +89,7 @@ pages.push({
   iconId: 'heart',
   label: 'Избранное',
   title: 'Избранные компоненты',
-  subtitle: 'Компоненты, которые вы отметили сердечком.',
+  subtitle: 'Компоненты, которые вы отметили сердецком.',
   build: () => {
     const wrap = document.createElement('div');
     const favs = getFavorites();
@@ -121,8 +121,8 @@ pages.push({
       ` : `
         <div class="favorites-empty" style="text-align:center;padding:60px 20px">
           <div style="opacity:0.3;margin-bottom:12px">${icon('heart', 48)}</div>
-          <h3 style="margin:0 0 8px;font-size:18px;color:var(--text-main)">Пока ничего нет</h3>
-          <p style="margin:0;color:var(--text-secondary);font-size:14px">Нажмите на ${icon('heart', 14)} в карточке компонента, чтобы добавить его сюда</p>
+          <h3 style="margin:0 0 8px;font-size:18px;color:var(--text-main)">Пока ницего нет</h3>
+          <p style="margin:0;color:var(--text-secondary);font-size:14px">Нажмите на ${icon('heart', 14)} в картоцке компонента, цтобы добавить его сюда</p>
         </div>
       `}
     `;
@@ -145,8 +145,8 @@ pages.push({
   group: 'templates',
   iconId: 'grid',
   label: 'Шаблоны',
-  title: 'Шаблоны страниц',
-  subtitle: 'Готовые композиции из компонентов design systems — все интерактивные экраны на одной странице.',
+  title: 'Шаблоны страних',
+  subtitle: 'Готовые композихии из компонентов design systems — все интерактивные экраны на одной странихе.',
   build: () => {
     const wrap = document.createElement('div');
     wrap.className = 'tpl-page';
@@ -284,7 +284,7 @@ pages.push({
   iconId: 'contrast',
   label: 'Tokens Playground',
   title: 'Design Tokens Playground',
-  subtitle: 'Интерактивная настройка токенов: цвета, радиусы, тени, отступы, типографика и density. Изменения применяются через CSS variables ко всей витрине.',
+  subtitle: 'Интерактивная настройка токенов: хвета, радиусы, тени, отступы, типографика и density. Изменения применяются церез CSS variables ко всей витрине.',
   build: () => {
     const wrap = document.createElement('div');
     wrap.className = 'tpg-wrap';
@@ -293,7 +293,7 @@ pages.push({
         <div class="tpg-card">
           <h3 class="tpg-card-title">Primary</h3>
           <input type="color" id="pg-primary" value="#008f95" class="tpg-color-input">
-          <p class="tpg-card-hint" id="pg-primary-val">#008f95 · hover/pressed автоматически</p>
+          <p class="tpg-card-hint" id="pg-primary-val">#008f95 · hover/pressed автоматицески</p>
         </div>
         <div class="tpg-card">
           <h3 class="tpg-card-title">Border color</h3>
@@ -308,7 +308,7 @@ pages.push({
         <div class="tpg-card">
           <h3 class="tpg-card-title">Spacing scale</h3>
           <input type="range" id="pg-spacing" class="tpg-range" min="75" max="140" value="100">
-          <div class="tpg-range-row"><span>−25%</span><strong id="pg-spacing-val">100%</strong><span>+40%</span></div>
+          <div class="tpg-range-row"><span>‒25%</span><strong id="pg-spacing-val">100%</strong><span>+40%</span></div>
         </div>
         <div class="tpg-card">
           <h3 class="tpg-card-title">Body font size</h3>
@@ -341,7 +341,7 @@ pages.push({
 
       <div class="tpg-preview-head">
         <h3 style="color:var(--text-main)">Live Preview</h3>
-        <span style="font-size:13px;color:var(--text-secondary)">Кнопки · форма · карточка · таблица · теги</span>
+        <span style="font-size:13px;color:var(--text-secondary)">Кнопки · форма · картоцка · таблиха · теги</span>
       </div>
       <div class="tpg-preview-grid" id="pg-preview">
         <div class="tpg-preview-panel">
@@ -377,7 +377,7 @@ pages.push({
         <div class="tpg-preview-panel">
           <p class="tpg-preview-panel-title">Status</p>
           <div class="tpg-preview-row">
-            <span class="tag tag-success">В наличии</span>
+            <span class="tag tag-success">В налиции</span>
             <span class="tag tag-warning">Под заказ</span>
             <span class="tag tag-neutral">Черновик</span>
           </div>
@@ -385,7 +385,7 @@ pages.push({
         <div class="tpg-preview-panel">
           <p class="tpg-preview-panel-title">Typography</p>
           <div class="sb-text size-l" style="margin-bottom:6px">Заголовок H2</div>
-          <div class="sb-text size-m">Body text — типографика масштабируется с --fs-body.</div>
+          <div class="sb-text size-m">Body text — типографика масртабируется с --fs-body.</div>
         </div>
       </div>
 
@@ -451,7 +451,7 @@ pages.push({
         root.style.setProperty('--primary-light', pgAlpha(primary, 0.08));
         root.style.setProperty('--border-primary', `1px solid ${primary}`);
         root.style.setProperty('--border-focus', `0 0 0 3px ${pgAlpha(primary, 0.25)}`);
-        els.primaryVal.textContent = `${primary} · hover/pressed автоматически`;
+        els.primaryVal.textContent = `${primary} · hover/pressed автоматицески`;
 
         const border = els.border.value;
         root.style.setProperty('--border', border);
@@ -498,7 +498,7 @@ pages.push({
         els.shadowChips.forEach(c => c.classList.toggle('is-active', c.dataset.shadowPreset === 'default'));
         els.densityBtns.forEach(b => b.classList.toggle('is-active', b.dataset.density === 'normal'));
         updateTheme();
-        if (typeof showSiteToast === 'function') showSiteToast('Токены сброшены');
+        if (typeof showSiteToast === 'function') showSiteToast('Токены сброрены');
       }
 
       ['input', 'change'].forEach(ev => {
@@ -548,194 +548,988 @@ pages.push({
   }
 });
 
-// AI Builder page
+// SB Agent — tool-using design-system agent (chat · preview · export)
 pages.push({
   id: 'ai-builder',
   group: 'main',
-  iconId: 'settings',
-  label: 'AI Builder',
-  title: 'AI Builder',
-  subtitle: 'Конструктор интерфейсов. Выберите компоненты, укажите стек — получите готовый промт для ИИ-агента.',
+  iconId: 'zap',
+  label: 'SB Agent',
+  title: 'SB Agent',
+  subtitle: 'Агент по SB Design System: бриф · шаблон и компоненты · живое превью · правки · экспорт.',
   build: () => {
     const wrap = document.createElement('div');
+    if (!window.SbAgent) {
+      wrap.innerHTML = '<p style="color:var(--text-secondary)">Движок агента не загружен.</p>';
+      return wrap;
+    }
+
+    const CHATS_KEY = 'sb-agent-chats-v2';
+    const chatLog = [];
+    let busy = false;
+    let settingsOpen = false;
+
+    function chatUid() {
+      return 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    }
+    function makeChat(title) {
+      return {
+        id: chatUid(),
+        title: title || 'Новый чат',
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        project: SbAgent.emptyProject(),
+        session: SbAgent.emptySession(),
+        messages: [],
+      };
+    }
+    function loadChatsStore() {
+      try {
+        const raw = localStorage.getItem(CHATS_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (!parsed || !Array.isArray(parsed.chats) || !parsed.chats.length) return null;
+        return parsed;
+      } catch (e) {
+        return null;
+      }
+    }
+    let chatsStore = loadChatsStore();
+    if (!chatsStore) {
+      const first = makeChat();
+      chatsStore = { activeId: first.id, chats: [first] };
+    }
+    let activeChatId = chatsStore.activeId;
+    if (!chatsStore.chats.some((c) => c.id === activeChatId)) {
+      activeChatId = chatsStore.chats[0].id;
+      chatsStore.activeId = activeChatId;
+    }
+    let activeChat = chatsStore.chats.find((c) => c.id === activeChatId) || chatsStore.chats[0];
+    let project = activeChat.project ? { ...SbAgent.emptyProject(), ...activeChat.project } : SbAgent.emptyProject();
+    let session = activeChat.session ? { ...SbAgent.emptySession(), ...activeChat.session } : SbAgent.emptySession();
+    SbAgent.sanitizeProjectComponents(project);
+
+    const THINK = [
+      'Сверяю каталог SB…',
+      'Подбираю компоненты…',
+      'Собираю экран…',
+      'Проверяю compliance…',
+      'Обновляю превью…',
+    ];
+    let thinkIdx = 0;
+    let thinkTimer = null;
+    let recognition = null;
+    let voiceListening = false;
+    let pendingPreviewAction = null;
+
     wrap.innerHTML = `
-      <div style="display:grid;grid-template-columns:280px 1fr;gap:24px">
-
-        <!-- Sidebar with components -->
-        <div class="ai-builder-panel" style="border-radius:12px;padding:20px;height:fit-content">
-          <div style="font-size:15px;font-weight:700;margin-bottom:16px;color:var(--text-main)">Выберите компоненты</div>
-          <div id="ai-builder-components" style="display:flex;flex-direction:column;gap:16px;max-height:620px;overflow-y:auto;padding-right:8px"></div>
-        </div>
-
-        <!-- Main panel -->
-        <div class="ai-builder-panel" style="border-radius:12px;padding:24px;display:flex;flex-direction:column">
-
-          <div style="margin-bottom:20px">
-            <div style="font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:8px">Стек разработки</div>
-            <div id="ai-builder-stack" style="display:flex;flex-wrap:wrap;gap:8px">
-              <button type="button" class="btn btn-secondary btn-s active" data-stack="react">React + Tailwind</button>
-              <button type="button" class="btn btn-secondary btn-s" data-stack="vue">Vue 3</button>
-              <button type="button" class="btn btn-secondary btn-s" data-stack="html">HTML + CSS + JS</button>
+      <div class="sb-agent">
+        <section class="sb-agent-toolbar" aria-label="Проект" id="sb-agent-side"></section>
+        <div class="sb-agent-main">
+          <section class="sb-agent-col is-chat" aria-label="Чат с агентом">
+            <div class="sb-agent-col-h">
+              <div class="sb-agent-avatar" aria-hidden="true">AI</div>
+              <div class="sb-agent-titles">
+                <h3>SB Agent</h3>
+                <span class="sb-agent-online" id="sb-agent-live"><i></i> Онлайн · Design System</span>
+              </div>
+              <button type="button" class="sb-agent-icon-btn" id="sb-agent-settings-btn" title="Настройки RAG / LLM" aria-label="Настройки" aria-expanded="false">${icon('settings', 16)}</button>
+              <button type="button" class="sb-agent-icon-btn" id="sb-agent-new-chat" title="Новый чат" aria-label="Новый чат">${icon('plus', 16)}</button>
+              <button type="button" class="sb-agent-icon-btn" id="sb-agent-clear" title="Очистить чат" aria-label="Очистить чат">${icon('refresh', 16)}</button>
             </div>
-          </div>
+            <div class="sb-agent-chats" id="sb-agent-chats" role="tablist" aria-label="Чаты"></div>
+            <div class="sb-agent-chat" id="sb-agent-chat"></div>
+            <div class="sb-agent-settings" id="sb-agent-settings" hidden></div>
+            <div class="sb-agent-composer">
+              <div class="sb-agent-chips" id="sb-agent-chips"></div>
+              <textarea id="sb-agent-input" rows="3" placeholder="Например: найди Filter Bar или собери платформу поручений…"></textarea>
+              <div class="sb-agent-actions">
+                <button type="button" class="sb-agent-mic" id="sb-agent-mic" title="Голосовой ввод" aria-label="Голосовой ввод">${icon('mic', 16)}</button>
+                <span class="sb-agent-actions-spacer"></span>
+                <button type="button" class="sb-agent-send" id="sb-agent-send" aria-label="Отправить">${icon('arrow-right', 16)}</button>
+              </div>
+            </div>
+          </section>
 
-          <div style="flex:1">
-            <div style="font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:8px">Выбранные компоненты</div>
-            <div id="ai-builder-selected" class="ai-builder-dropzone" style="min-height:120px;border:1px dashed var(--border);border-radius:10px;padding:16px;display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start"></div>
-          </div>
-
-          <div style="margin-top:24px">
-            <button id="ai-builder-generate" class="btn btn-primary" style="width:100%;padding:14px;font-size:16px">
-              ✨ Сгенерировать промт для ИИ
-            </button>
-          </div>
-
-          <div id="ai-builder-result" style="margin-top:24px;display:none">
-            <div style="font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:8px">Сгенерированный промт</div>
-            <pre id="ai-builder-prompt" style="background:#0b2a30;color:#cfdee1;padding:18px;border-radius:10px;font-size:13px;line-height:1.6;white-space:pre-wrap;max-height:420px;overflow-y:auto"></pre>
-            <button id="ai-builder-copy" class="btn btn-secondary" style="margin-top:12px">${icon('copy', 16)} Скопировать</button>
-          </div>
-
+          <section class="sb-agent-col is-preview" aria-label="Превью">
+            <div class="sb-agent-col-h">
+              <h3>Превью</h3>
+              <div class="sb-agent-screens" id="sb-agent-screens"></div>
+              <button type="button" class="btn btn-ghost btn-s" id="sb-agent-refresh">Обновить</button>
+            </div>
+            <div class="sb-agent-preview-empty" id="sb-agent-preview-empty">
+              <div class="sb-agent-empty-hero">
+                <strong>Сборка на паузе</strong>
+                <span>Проверьте LLM в ⚙</span>
+              </div>
+              <div class="sb-agent-empty-grid" id="sb-agent-empty-examples"></div>
+            </div>
+            <iframe class="sb-agent-preview-frame" id="sb-agent-preview" title="SB Agent preview" hidden></iframe>
+          </section>
         </div>
-
       </div>
     `;
 
-    const componentsContainer = wrap.querySelector('#ai-builder-components');
-    const selectedContainer = wrap.querySelector('#ai-builder-selected');
-    const generateBtn = wrap.querySelector('#ai-builder-generate');
-    const resultBlock = wrap.querySelector('#ai-builder-result');
-    const promptEl = wrap.querySelector('#ai-builder-prompt');
-    const copyBtn = wrap.querySelector('#ai-builder-copy');
-    const stackBtns = wrap.querySelectorAll('#ai-builder-stack .btn');
+    const chatEl = wrap.querySelector('#sb-agent-chat');
+    const inputEl = wrap.querySelector('#sb-agent-input');
+    const sendBtn = wrap.querySelector('#sb-agent-send');
+    const chipsEl = wrap.querySelector('#sb-agent-chips');
+    const frame = wrap.querySelector('#sb-agent-preview');
+    const emptyPrev = wrap.querySelector('#sb-agent-preview-empty');
+    const sideEl = wrap.querySelector('#sb-agent-side');
+    const screensEl = wrap.querySelector('#sb-agent-screens');
+    const liveEl = wrap.querySelector('#sb-agent-live');
+    const micBtn = wrap.querySelector('#sb-agent-mic');
+    const settingsBtn = wrap.querySelector('#sb-agent-settings-btn');
+    const settingsEl = wrap.querySelector('#sb-agent-settings');
+    const chatsEl = wrap.querySelector('#sb-agent-chats');
 
-    let selectedStack = 'react';
-    let selectedComponents = [];
 
-    // Render all components grouped
-    categoryOrder.forEach(cat => {
-      const groupItems = uniqueComponentsList.filter(c => {
-        const keys = [cat.key, ...(cat.extraKeys || [])];
-        return keys.includes(c.category);
-      });
-      if (!groupItems.length) return;
-
-      const groupDiv = document.createElement('div');
-      groupDiv.innerHTML = `<div style="font-size:12px;font-weight:700;color:var(--text-secondary);margin-bottom:8px">${cat.label}</div>`;
-      const groupContainer = document.createElement('div');
-      groupContainer.style.display = 'flex';
-      groupContainer.style.flexDirection = 'column';
-      groupContainer.style.gap = '6px';
-
-      groupItems.forEach(comp => {
-        const label = document.createElement('label');
-        label.style.display = 'flex';
-        label.style.alignItems = 'center';
-        label.style.gap = '8px';
-        label.style.cursor = 'pointer';
-        label.style.fontSize = '13px';
-        label.style.color = 'var(--text-main)';
-        label.innerHTML = `
-          <input type="checkbox" data-comp-name="${comp.name}" style="accent-color:var(--primary)">
-          <span>${comp.name}</span>
-        `;
-        groupContainer.appendChild(label);
-      });
-
-      groupDiv.appendChild(groupContainer);
-      componentsContainer.appendChild(groupDiv);
-    });
-
-    // Checkbox handler
-    componentsContainer.addEventListener('change', e => {
-      if (!e.target.type === 'checkbox') return;
-      const name = e.target.dataset.compName;
-      const comp = uniqueComponentsList.find(c => c.name === name);
-      if (!comp) return;
-
-      if (e.target.checked) {
-        if (!selectedComponents.find(c => c.name === name)) selectedComponents.push(comp);
-      } else {
-        selectedComponents = selectedComponents.filter(c => c.name !== name);
+    function persistActiveChat() {
+      const chat = chatsStore.chats.find((c) => c.id === activeChatId);
+      if (!chat) return;
+      chat.project = project;
+      chat.session = session;
+      chat.messages = chatLog.map((m) => ({ role: m.role, text: m.text, meta: m.meta || null }));
+      chat.updatedAt = Date.now();
+      if ((!chat.title || chat.title === 'Новый чат')) {
+        const firstUser = chatLog.find((m) => m.role === 'user');
+        if (firstUser && firstUser.text) {
+          chat.title = String(firstUser.text).replace(/\s+/g, ' ').trim().slice(0, 32);
+        } else if (project.title && project.title !== 'Новый проект') {
+          chat.title = String(project.title).slice(0, 32);
+        }
       }
-      renderSelected();
-    });
+      chatsStore.activeId = activeChatId;
+      try {
+        localStorage.setItem(CHATS_KEY, JSON.stringify(chatsStore));
+      } catch (e) {}
+      SbAgent.saveProject(project);
+      SbAgent.saveSession(session);
+    }
 
-    function renderSelected() {
-      selectedContainer.innerHTML = '';
-      if (!selectedComponents.length) {
-        selectedContainer.innerHTML = `<div style="color:var(--text-secondary);font-size:13px;text-align:center;padding:20px">Выберите компоненты слева</div>`;
-        return;
-      }
-      selectedComponents.forEach(comp => {
-        const pill = document.createElement('div');
-        pill.style.cssText = 'background:rgba(0,143,149,0.1);color:var(--primary);padding:4px 12px;border-radius:20px;font-size:13px;display:flex;align-items:center;gap:6px;cursor:pointer';
-        pill.innerHTML = `
-          ${comp.name}
-          <span style="line-height:1;cursor:pointer;display:inline-flex" data-remove-name="${comp.name}">${icon('close', 14)}</span>
-        `;
-        pill.querySelector('[data-remove-name]').addEventListener('click', e => {
-          e.stopPropagation();
-          const cb = componentsContainer.querySelector(`input[data-comp-name="${comp.name}"]`);
-          if (cb) cb.checked = false;
-          selectedComponents = selectedComponents.filter(c => c.name !== comp.name);
-          renderSelected();
+    function renderChatTabs() {
+      const list = [...chatsStore.chats].sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+      chatsEl.innerHTML = list.map((c) => {
+        const active = c.id === activeChatId ? ' is-active' : '';
+        const title = (c.title || 'Новый чат').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+        return `<button type="button" class="sb-agent-chat-tab${active}" role="tab" aria-selected="${c.id === activeChatId}" data-chat="${c.id}" title="${title}">
+          <span class="sb-agent-chat-tab-title">${title}</span>
+          <span class="sb-agent-chat-tab-x" data-del="${c.id}" title="Удалить">×</span>
+        </button>`;
+      }).join('');
+      chatsEl.querySelectorAll('[data-chat]').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+          if (e.target && e.target.dataset && e.target.dataset.del) return;
+          switchChat(btn.dataset.chat);
         });
-        selectedContainer.appendChild(pill);
+      });
+      chatsEl.querySelectorAll('[data-del]').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          deleteChat(btn.dataset.del);
+        });
       });
     }
 
-    // Stack buttons
-    stackBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        stackBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        selectedStack = btn.dataset.stack;
+    function paintMessages(messages) {
+      chatEl.innerHTML = '';
+      chatLog.length = 0;
+      (messages || []).forEach((m) => {
+        pushChat(m.role, m.text, m.meta || null);
       });
-    });
+    }
 
-    // Generate button
-    generateBtn.addEventListener('click', () => {
-      if (!selectedComponents.length) {
-        alert('Выберите хотя бы один компонент');
+    function applyChat(chat, opts) {
+      activeChatId = chat.id;
+      activeChat = chat;
+      chatsStore.activeId = chat.id;
+      project = chat.project ? { ...SbAgent.emptyProject(), ...chat.project } : SbAgent.emptyProject();
+      session = chat.session ? { ...SbAgent.emptySession(), ...chat.session } : SbAgent.emptySession();
+      SbAgent.sanitizeProjectComponents(project);
+      paintMessages(chat.messages || []);
+      if (!(chat.messages && chat.messages.length) && !(opts && opts.skipWelcome)) {
+        pushChat('assistant',
+          '**Новый чат.** Справа — примеры экранов, или напишите запрос / выберите чип.');
+      }
+      setChips();
+      renderEmptyExamples();
+      renderSide();
+      renderScreens();
+      renderPreview();
+      renderChatTabs();
+      persistActiveChat();
+    }
+
+    function switchChat(id) {
+      if (busy || !id || id === activeChatId) return;
+      persistActiveChat();
+      const chat = chatsStore.chats.find((c) => c.id === id);
+      if (!chat) return;
+      applyChat(chat, { skipWelcome: true });
+      if (!(chat.messages && chat.messages.length)) {
+        pushChat('assistant',
+          '**Привет!** Нажмите пример справа или напишите запрос.');
+        persistActiveChat();
+        renderChatTabs();
+      }
+    }
+
+    function createNewChat() {
+      if (busy) return;
+      persistActiveChat();
+      const chat = makeChat();
+      chatsStore.chats.unshift(chat);
+      applyChat(chat);
+      if (typeof showSiteToast === 'function') showSiteToast('Новый чат');
+    }
+
+    function deleteChat(id) {
+      if (busy) return;
+      if (chatsStore.chats.length <= 1) {
+        // reset the only chat
+        const chat = chatsStore.chats[0];
+        chat.title = 'Новый чат';
+        chat.project = SbAgent.emptyProject();
+        chat.session = SbAgent.emptySession();
+        chat.messages = [];
+        chat.updatedAt = Date.now();
+        applyChat(chat);
         return;
       }
-
-      const componentNames = selectedComponents.map(c => c.name);
-      let stackText = '';
-      switch (selectedStack) {
-        case 'react': stackText = 'React + Tailwind CSS'; break;
-        case 'vue': stackText = 'Vue 3 + Tailwind CSS'; break;
-        case 'html': stackText = 'HTML + CSS + Vanilla JS (без фреймворков)'; break;
+      chatsStore.chats = chatsStore.chats.filter((c) => c.id !== id);
+      const next = chatsStore.chats.find((c) => c.id === activeChatId) || chatsStore.chats[0];
+      applyChat(next, { skipWelcome: true });
+      if (!(next.messages && next.messages.length)) {
+        pushChat('assistant', '**Чат удалён.** Открыт другой — можете продолжить здесь.');
+        persistActiveChat();
+        renderChatTabs();
       }
+    }
 
-      const basePrompt = `Создай современный интерфейс на ${stackText} в стиле SB Design System (корпоративный, строгий, контентно-ориентированный).
 
-Используй следующие компоненты:
-${componentNames.join(', ')}
+    function formatMsgHtml(text) {
+      return String(text || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+        .replace(/\n/g, '<br>');
+    }
 
-Сделай страницу заявки (или дашборд) с этими компонентами. Используй современный дизайн, хорошую типографику, правильные отступы, hover-эффекты и доступность.
+    function setLiveStatus(mode) {
+      if (!liveEl) return;
+      if (mode === 'busy') {
+        liveEl.innerHTML = '<i></i> Думаю…';
+        liveEl.classList.add('is-busy');
+        return;
+      }
+      liveEl.classList.remove('is-busy');
+      liveEl.innerHTML = '<i></i> Онлайн · Design System';
+    }
 
-Применяй дизайн-токены из промта (CSS-переменные :root) для цветов, теней (--shadow-card, --shadow-hover), радиусов (--r-sm, --r-md, --r-lg), толщины границ (--border-w) и focus-ring (--border-focus).
+    function stopThinking() {
+      if (thinkTimer) {
+        clearInterval(thinkTimer);
+        thinkTimer = null;
+      }
+      const row = chatEl.querySelector('.sb-agent-thinking');
+      if (row) row.remove();
+      setLiveStatus('idle');
+    }
 
-Верни полный код (один файл) с комментариями.`;
+    function startThinking() {
+      stopThinking();
+      setLiveStatus('busy');
+      thinkIdx = 0;
+      const row = document.createElement('div');
+      row.className = 'sb-agent-thinking';
+      row.innerHTML = '<span class="sb-agent-spinner"></span><span data-think>' + THINK[0] + '</span>';
+      chatEl.appendChild(row);
+      chatEl.scrollTop = chatEl.scrollHeight;
+      thinkTimer = setInterval(() => {
+        thinkIdx = (thinkIdx + 1) % THINK.length;
+        const el = row.querySelector('[data-think]');
+        if (el) el.textContent = THINK[thinkIdx];
+      }, 900);
+    }
 
-      const prompt = typeof buildAiPromptWithStyles === 'function'
-        ? buildAiPromptWithStyles(basePrompt, componentNames)
-        : basePrompt;
+    function downloadText(filename, content, mime) {
+      const blob = new Blob([content], { type: mime || 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1500);
+    }
 
-      promptEl.textContent = prompt;
-      resultBlock.style.display = 'block';
-      promptEl.scrollIntoView({ behavior: 'smooth' });
+    function slugName() {
+      return String(project.title || project.name || 'sb-project')
+        .toLowerCase()
+        .replace(/[^a-zа-яё0-9]+/gi, '-')
+        .replace(/^-|-$/g, '')
+        .slice(0, 40) || 'sb-project';
+    }
+
+    function pushChat(role, text, meta) {
+      chatLog.push({ role, text, meta });
+      const row = document.createElement('div');
+      row.className = `sb-agent-msg-row is-${role}`;
+      const bubble = document.createElement('div');
+      bubble.className = `sb-agent-msg is-${role}`;
+      bubble.innerHTML = formatMsgHtml(text);
+      if (meta && meta.tools && meta.tools.length) {
+        const tools = document.createElement('div');
+        tools.className = 'sb-agent-tools';
+        tools.textContent = 'Сделано · ' + meta.tools.length + ' раг' + (meta.tools.length === 1 ? '' : 'а');
+        bubble.appendChild(tools);
+      }
+      if (role === 'assistant') {
+        row.innerHTML = '<div class="sb-agent-avatar is-sm" aria-hidden="true">AI</div>';
+        row.appendChild(bubble);
+      } else if (role === 'user') {
+        row.appendChild(bubble);
+        row.insertAdjacentHTML('beforeend', '<div class="sb-agent-avatar is-sm is-user" aria-hidden="true">Я</div>');
+      } else {
+        row.appendChild(bubble);
+      }
+      chatEl.appendChild(row);
+      chatEl.scrollTop = chatEl.scrollHeight;
+      return bubble;
+    }
+
+    function pushPlanCard(plan) {
+      const div = document.createElement('div');
+      div.className = 'sb-agent-msg is-plan';
+      const steps = plan.steps || [];
+      const friendly = {
+        search_components: 'Ищу в каталоге SB',
+        apply_scenario: 'Собираю сценарий',
+        build_from_intent: 'Собираю экран',
+        build_from_tz: 'Собираю интерфейс',
+        analyze_tz: 'Разбираю запрос',
+        rag_search: 'Ищу в RAG',
+        ground_in_sb: 'Привязываю к SB',
+        assert_sb_compliance: 'Проверяю политику',
+        recall_sb_policy: 'Сверяю правила SB',
+        remember_brief: 'Фиксирую бриф',
+        compose_preview: 'Обновляю превью',
+        set_stack: 'Меняю стек',
+        set_theme: 'Меняю тему',
+        set_density: 'Меняю плотность',
+        set_title: 'Обновляю название',
+        set_active_screen: 'Переключаю экран',
+        get_readiness: 'Сверяю готовность',
+        check_readiness: 'Сверяю готовность',
+        add_component: 'Добавляю компонент',
+        export_handoff: 'Готовлю передачу',
+      };
+      div.innerHTML = `
+        <div class="sb-agent-plan-head">
+          <span class="sb-agent-plan-badge">План</span>
+          <strong>${formatMsgHtml(plan.summary || 'Делаю по запросу')}</strong>
+        </div>
+        <ol class="sb-agent-think-list sb-agent-plan-list"></ol>
+      `;
+      const list = div.querySelector('ol');
+      steps.forEach((s) => {
+        const li = document.createElement('li');
+        li.className = 'is-pending';
+        li.dataset.tool = s.tool;
+        li.innerHTML = `<span class="sb-agent-think-tool">${friendly[s.tool] || s.tool}</span> <span class="sb-agent-think-detail">${s.why || ''}</span>`;
+        list.appendChild(li);
+      });
+      if (!steps.length) {
+        const li = document.createElement('li');
+        li.className = 'is-done';
+        li.textContent = plan.clarify ? 'Нужно утоцнение' : 'Отвецаю без изменений превью';
+        list.appendChild(li);
+      }
+      const row = document.createElement('div');
+      row.className = 'sb-agent-msg-row is-assistant';
+      row.innerHTML = '<div class="sb-agent-avatar is-sm" aria-hidden="true">AI</div>';
+      row.appendChild(div);
+      chatEl.appendChild(row);
+      chatEl.scrollTop = chatEl.scrollHeight;
+      return div;
+    }
+
+    function markPlanStep(planEl, index, observe) {
+      if (!planEl) return;
+      const items = [...planEl.querySelectorAll('li')];
+      const li = items[index];
+      if (!li) return;
+      li.classList.remove('is-pending');
+      li.classList.add('is-done');
+      if (observe) {
+        const detail = li.querySelector('.sb-agent-think-detail');
+        if (detail) detail.textContent = (detail.textContent ? detail.textContent + ' · ' : '') + observe;
+      }
+    }
+
+    function finishPlanCard(planEl) {
+      if (!planEl) return;
+      const head = planEl.querySelector('.sb-agent-plan-head strong');
+      if (head) head.textContent = (head.textContent || '') + ' · готово';
+      planEl.classList.add('is-done');
+    }
+
+    function doHandoff() {
+      const pack = SbAgent.exportHandoff(project, session);
+      if (pack.blocked) {
+        pushChat('assistant',
+          '**Handoff заблокирован** (SB gate):\n' +
+          (pack.reasons || []).map((r) => '• ' + r).join('\n'));
+        if (typeof showSiteToast === 'function') showSiteToast('Handoff blocked');
+        return;
+      }
+      downloadText(slugName() + '-spec.md', pack.spec, 'text/markdown;charset=utf-8');
+      setTimeout(() => {
+        downloadText(slugName() + '.html', pack.html, 'text/html;charset=utf-8');
+      }, 200);
+      pushChat('assistant',
+        'Пакет **передан в разработку**: Spec.md + HTML.\n' +
+        'SB compliance OK · компоненты: ' + pack.componentMap.join(', '));
+      if (typeof showSiteToast === 'function') showSiteToast('Handoff ✓');
+    }
+
+    function runGoldenEval() {
+      if (!window.SbAgentEval) {
+        pushChat('assistant', 'Eval-модуль не загружен.');
+        return;
+      }
+      const report = SbAgentEval.runEval();
+      const lines = report.results.map((r) =>
+        `${r.ok ? '✓' : '✗'} **${r.id}**` + (r.ok ? '' : ' — ' + (r.failures || []).join('; '))
+      );
+      pushChat('assistant',
+        `**Golden eval:** ${report.summary}\n\n` + lines.join('\n') +
+        (report.ok ? '\n\nКонтур SB соблюдён на всех брифах.' : '\n\nИсправьте failing cases перед LLM.'));
+      if (typeof showSiteToast === 'function') showSiteToast(report.summary);
+    }
+
+
+    function renderScreens() {
+      const screens = project.screens || [];
+      if (!screens.length) {
+        screensEl.innerHTML = '';
+        return;
+      }
+      screensEl.innerHTML = screens.map((s) =>
+        `<button type="button" class="sb-agent-screen-tab${project.activeScreen === s.id ? ' is-active' : ''}" data-screen="${s.id}">${s.label}</button>`
+      ).join('');
+      screensEl.querySelectorAll('[data-screen]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          project = SbAgent.setActiveScreen(project, btn.dataset.screen);
+          SbAgent.saveProject(project);
+          renderSide();
+          renderScreens();
+          renderPreview();
+          if (typeof showSiteToast === 'function') showSiteToast('Экран: ' + btn.textContent);
+        });
+      });
+    }
+
+    function renderSide() {
+      const tpl = project.templateId ? SbAgent.getTemplate(project.templateId) : null;
+      const comps = project.components || [];
+      const screens = project.screens || [];
+      const r = SbAgent.getReadiness(project);
+      const themeLabel = project.theme === 'dark' ? 'Тёмная' : 'Светлая';
+      const densityLabel = project.density === 'compact' ? 'компакт' : 'std';
+      const metaBits = [
+        tpl ? tpl.label : null,
+        comps.length ? comps.length + ' комп.' : null,
+        screens.length > 1 ? screens.length + ' экрана' : null,
+        themeLabel + ' · ' + densityLabel,
+      ].filter(Boolean);
+
+      sideEl.innerHTML = `
+        <div class="sb-agent-bar-identity">
+          <span class="sb-agent-status ${r.ready ? 'is-ready' : ''}" title="Готовность ${r.pct}%">${r.ready ? 'Ready' : 'Draft'}</span>
+          <div class="sb-agent-bar-text">
+            <div class="sb-agent-bar-title" title="${(project.title || '').replace(/"/g, '&quot;')}">${project.title || 'Новый проект'}</div>
+            <div class="sb-agent-bar-meta" title="${(project.goal || '').replace(/"/g, '&quot;')}">${metaBits.join(' · ')}</div>
+          </div>
+        </div>
+        <div class="sb-agent-bar-controls">
+          <div class="sb-choice-group view-primary form-default size-xs" data-choice-group data-single role="group" aria-label="Стек">
+            ${['react', 'vue', 'html'].map(s =>
+              `<label class="sb-choice-item${project.stack === s ? ' is-selected' : ''}" data-stack="${s}">
+                <input type="radio" name="sb-agent-stack" value="${s}"${project.stack === s ? ' checked' : ''} />
+                <span>${s === 'react' ? 'React' : s === 'vue' ? 'Vue' : 'HTML'}</span>
+              </label>`
+            ).join('')}
+          </div>
+        </div>
+        <div class="sb-agent-bar-actions">
+          <button type="button" class="btn btn-primary btn-s" id="sb-agent-handoff" title="Spec + HTML">${icon('download', 14)} В разработку</button>
+          <button type="button" class="btn btn-ghost btn-s" id="sb-agent-export-html" title="Только HTML">HTML</button>
+          <div class="sb-agent-bar-more">
+            <button type="button" class="btn btn-ghost btn-s sb-agent-more-btn" id="sb-agent-more" aria-expanded="false" aria-haspopup="true" title="Ещё">⋯</button>
+            <div class="sb-agent-menu" id="sb-agent-menu" hidden>
+              <button type="button" id="sb-agent-export-prompt">Скачать Spec.md</button>
+              <button type="button" id="sb-agent-copy-prompt">Копировать промпт</button>
+              <button type="button" id="sb-agent-theme-toggle">${project.theme === 'dark' ? 'Светлая тема' : 'Тёмная тема'}</button>
+              <button type="button" id="sb-agent-density-toggle">${project.density === 'compact' ? 'Стандартная плотность' : 'Компактнее'}</button>
+              <button type="button" id="sb-agent-eval">Прогнать Eval</button>
+              <hr />
+              <button type="button" id="sb-agent-reset" class="is-danger">Очистить превью</button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      sideEl.querySelectorAll('[data-stack]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          const stack = btn.dataset.stack;
+          if (!stack || stack === project.stack) return;
+          const out = SbAgent.executeStep(project, session, { tool: 'set_stack', args: { stack }, why: 'UI' });
+          project = out.project;
+          session = out.session;
+          SbAgent.saveProject(project);
+          renderSide();
+          if (typeof showSiteToast === 'function') showSiteToast('Стек: ' + project.stack);
+        });
+      });
+
+      const moreBtn = sideEl.querySelector('#sb-agent-more');
+      const menu = sideEl.querySelector('#sb-agent-menu');
+      moreBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const open = menu.hidden;
+        menu.hidden = !open;
+        moreBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+      const closeMenu = () => {
+        menu.hidden = true;
+        moreBtn.setAttribute('aria-expanded', 'false');
+      };
+      document.addEventListener('click', closeMenu, { once: true });
+
+      sideEl.querySelector('#sb-agent-handoff').addEventListener('click', doHandoff);
+      sideEl.querySelector('#sb-agent-export-prompt').addEventListener('click', () => {
+        downloadText(slugName() + '-spec.md', SbAgent.exportPrompt(project), 'text/markdown;charset=utf-8');
+        closeMenu();
+        if (typeof showSiteToast === 'function') showSiteToast('Скачан Spec .md');
+      });
+      sideEl.querySelector('#sb-agent-export-html').addEventListener('click', () => {
+        downloadText(slugName() + '.html', SbAgent.buildPreviewDocument(project), 'text/html;charset=utf-8');
+        if (typeof showSiteToast === 'function') showSiteToast('Скачан HTML');
+      });
+      sideEl.querySelector('#sb-agent-copy-prompt').addEventListener('click', () => {
+        fallbackClipboardCopy(SbAgent.exportPrompt(project));
+        closeMenu();
+        if (typeof showSiteToast === 'function') showSiteToast('Промпт скопирован ✓');
+      });
+      sideEl.querySelector('#sb-agent-theme-toggle').addEventListener('click', () => {
+        const out = SbAgent.executeStep(project, session, {
+          tool: 'set_theme',
+          args: { theme: project.theme === 'dark' ? 'light' : 'dark' },
+          why: 'UI',
+        });
+        project = out.project;
+        session = out.session;
+        SbAgent.saveProject(project);
+        closeMenu();
+        renderSide();
+        renderPreview();
+      });
+      sideEl.querySelector('#sb-agent-density-toggle').addEventListener('click', () => {
+        const out = SbAgent.executeStep(project, session, {
+          tool: 'set_density',
+          args: { density: project.density === 'compact' ? 'default' : 'compact' },
+          why: 'UI',
+        });
+        project = out.project;
+        session = out.session;
+        SbAgent.saveProject(project);
+        closeMenu();
+        renderSide();
+        renderPreview();
+      });
+      const evalBtn = sideEl.querySelector('#sb-agent-eval');
+      if (evalBtn) {
+        evalBtn.addEventListener('click', () => {
+          closeMenu();
+          runGoldenEval();
+        });
+      }
+      sideEl.querySelector('#sb-agent-reset').addEventListener('click', () => {
+        project = SbAgent.emptyProject();
+        session = SbAgent.emptySession();
+        SbAgent.saveProject(project);
+        SbAgent.saveSession(session);
+        chatEl.innerHTML = '';
+        pushChat('assistant',
+          'Превью очищено.\n\nСправа снова примеры — нажмите карточку, и я соберу экран.');
+        closeMenu();
+        setChips();
+        renderEmptyExamples();
+        renderSide();
+        renderScreens();
+        renderPreview();
+      });
+    }
+
+    function renderPreview() {
+      if (!project.templateId && !project.html) {
+        frame.hidden = true;
+        emptyPrev.hidden = false;
+        return;
+      }
+      emptyPrev.hidden = true;
+      frame.hidden = false;
+      const action = pendingPreviewAction;
+      frame.onload = () => {
+        if (!action) return;
+        pendingPreviewAction = null;
+        try {
+          const api = frame.contentWindow && frame.contentWindow.__SB_ASSIGN_API__;
+          if (!api) return;
+          if (action.type === 'open' && action.taskId) api.openTask(action.taskId);
+          if (action.type === 'ai' && action.prompt) api.runAi(action.prompt);
+        } catch (e) {}
+      };
+      frame.srcdoc = SbAgent.buildPreviewDocument(project);
+    }
+
+    function switchPreviewScreen(next) {
+      if (!(project.screens || []).some((s) => s.id === next)) return false;
+      if (project.activeScreen === next) return true;
+      project = SbAgent.setActiveScreen(project, next);
+      SbAgent.saveProject(project);
+      persistActiveChat();
+      renderScreens();
+      renderSide();
+      renderPreview();
+      return true;
+    }
+
+    function runInPreview(action) {
+      pendingPreviewAction = action;
+      try {
+        const api = frame.contentWindow && frame.contentWindow.__SB_ASSIGN_API__;
+        if (api && project.activeScreen === 'board' && !frame.hidden) {
+          if (action.type === 'open' && action.taskId) api.openTask(action.taskId);
+          if (action.type === 'ai' && action.prompt) api.runAi(action.prompt);
+          pendingPreviewAction = null;
+          return;
+        }
+      } catch (err) {}
+      if (project.activeScreen !== 'board') switchPreviewScreen('board');
+      else renderPreview();
+    }
+
+    window.addEventListener('message', (e) => {
+      const d = e.data;
+      if (!d || typeof d !== 'object') return;
+      if (d.type === 'sb-agent-screen' && d.screenId) {
+        const next = d.screenId === 'admin' ? 'admin' : d.screenId === 'board' ? 'board' : d.screenId;
+        switchPreviewScreen(next);
+        return;
+      }
+      if (d.type === 'sb-agent-open-task' && d.taskId) {
+        runInPreview({ type: 'open', taskId: d.taskId });
+        return;
+      }
+      if (d.type === 'sb-agent-ai' && d.prompt) {
+        runInPreview({ type: 'ai', prompt: d.prompt });
+      }
     });
 
-    // Copy button
-    copyBtn.addEventListener('click', () => {
-      const text = promptEl.textContent;
-      if (!text) return;
-      fallbackClipboardCopy(text);
-      showSiteToast('Промт скопирован ✓');
+    function runPrompt(text) {
+      if (busy || !text) return;
+      inputEl.value = text;
+      send();
+    }
+
+    function renderEmptyExamples() {
+      const grid = emptyPrev.querySelector('#sb-agent-empty-examples');
+      if (!grid) return;
+      const list = (SbAgent.SCENARIOS || []).slice(0, 5);
+      grid.innerHTML = list.map((s) => {
+        const screens = (s.screens || []).map((x) => x.label).join(' · ');
+        return `
+          <button type="button" class="sb-agent-example">
+            <span class="sb-agent-example-title">${s.label}</span>
+            <span class="sb-agent-example-blurb">${s.blurb || s.goal || ''}</span>
+            <span class="sb-agent-example-meta">${screens}</span>
+            <span class="sb-agent-example-cta">Проверить →</span>
+          </button>`;
+      }).join('');
+      const buttons = grid.querySelectorAll('.sb-agent-example');
+      buttons.forEach((btn, i) => {
+        btn.addEventListener('click', () => {
+          const s = list[i];
+          runPrompt('Собери ' + ((s && (s.chip || s.label)) || btn.textContent));
+        });
+      });
+    }
+
+    function setChips(list) {
+      const defaults = [
+        'Платформа поручений',
+        'Дашборд KPI',
+        'Найди Filter Bar',
+        'Проверь compliance',
+      ];
+      const items = list && list.length ? list : defaults;
+      chipsEl.innerHTML = items.map(t => `<button type="button" class="sb-agent-chip" data-chip="${t.replace(/"/g, '')}">${t}</button>`).join('');
+      chipsEl.querySelectorAll('[data-chip]').forEach(btn => {
+        btn.addEventListener('click', () => runPrompt(btn.dataset.chip));
+      });
+    }
+
+    function renderSettingsPanel() {
+      if (!settingsEl) return;
+      const cfg = SbAgent.getPlannerConfig();
+      settingsEl.innerHTML = `
+        <div class="sb-agent-settings-head">
+          <strong>RAG · LLM · планировщик</strong>
+          <span>Без endpoint работает rule + локальный RAG</span>
+        </div>
+        <label class="sb-agent-settings-row">
+          <span>Режим</span>
+          <select id="sb-cfg-mode">
+            <option value="rule"${cfg.mode !== 'llm' ? ' selected' : ''}>Rule + RAG</option>
+            <option value="llm"${cfg.mode === 'llm' ? ' selected' : ''}>LLM planner</option>
+          </select>
+        </label>
+        <label class="sb-agent-settings-row">
+          <span>Endpoint</span>
+          <input type="url" id="sb-cfg-endpoint" placeholder="https://…/plan" value="${(cfg.endpoint || '').replace(/"/g, '&quot;')}" />
+        </label>
+        <label class="sb-agent-settings-row">
+          <span>API key</span>
+          <input type="password" id="sb-cfg-key" placeholder="optional" value="${(cfg.apiKey || '').replace(/"/g, '&quot;')}" autocomplete="off" />
+        </label>
+        <label class="sb-agent-settings-row">
+          <span>Model</span>
+          <input type="text" id="sb-cfg-model" placeholder="gpt-4.1-mini…" value="${(cfg.model || '').replace(/"/g, '&quot;')}" />
+        </label>
+        <label class="sb-agent-settings-check">
+          <input type="checkbox" id="sb-cfg-rag"${cfg.ragEnabled !== false ? ' checked' : ''} />
+          <span>Подмешивать RAG-контекст в план</span>
+        </label>
+        <div class="sb-agent-settings-actions">
+          <button type="button" class="btn btn-primary btn-s" id="sb-cfg-save">Сохранить</button>
+          <button type="button" class="btn btn-ghost btn-s" id="sb-cfg-close">Закрыть</button>
+        </div>
+      `;
+      settingsEl.querySelector('#sb-cfg-save').addEventListener('click', () => {
+        SbAgent.setPlannerConfig({
+          mode: settingsEl.querySelector('#sb-cfg-mode').value,
+          endpoint: settingsEl.querySelector('#sb-cfg-endpoint').value.trim(),
+          apiKey: settingsEl.querySelector('#sb-cfg-key').value.trim(),
+          model: settingsEl.querySelector('#sb-cfg-model').value.trim(),
+          ragEnabled: settingsEl.querySelector('#sb-cfg-rag').checked,
+        });
+        if (typeof showSiteToast === 'function') showSiteToast('Настройки агента сохранены');
+        toggleSettings(false);
+      });
+      settingsEl.querySelector('#sb-cfg-close').addEventListener('click', () => toggleSettings(false));
+    }
+
+    function toggleSettings(force) {
+      settingsOpen = typeof force === 'boolean' ? force : !settingsOpen;
+      if (!settingsEl || !settingsBtn) return;
+      settingsEl.hidden = !settingsOpen;
+      settingsBtn.setAttribute('aria-expanded', settingsOpen ? 'true' : 'false');
+      settingsBtn.classList.toggle('is-active', settingsOpen);
+      if (settingsOpen) renderSettingsPanel();
+    }
+
+    function finishTurn(plan, lastExtra) {
+      stopThinking();
+      const reply = SbAgent.buildReply(plan, project, session, lastExtra);
+      pushChat('assistant', reply, { tools: (plan.steps || []).map((s) => s.tool) });
+      if (plan.suggestions) setChips(plan.suggestions);
+      else setChips();
+      SbAgent.saveProject(project);
+      SbAgent.saveSession(session);
+      persistActiveChat();
+      renderChatTabs();
+      renderSide();
+      renderScreens();
+      if (plan.preview || plan.kind === 'build' || project.templateId) renderPreview();
+      busy = false;
+      sendBtn.disabled = false;
+      if (micBtn) micBtn.disabled = false;
+      inputEl.disabled = false;
+      inputEl.focus();
+    }
+
+    function executePlan(plan, planEl) {
+      if (!plan.steps || !plan.steps.length) {
+        setTimeout(() => {
+          finishPlanCard(planEl);
+          finishTurn(plan, null);
+        }, 220);
+        return;
+      }
+      let i = 0;
+      let lastExtra = null;
+      function runNext() {
+        if (i >= plan.steps.length) {
+          finishPlanCard(planEl);
+          finishTurn(plan, lastExtra);
+          return;
+        }
+        const step = plan.steps[i];
+        const out = SbAgent.executeStep(project, session, step);
+        project = out.project;
+        session = out.session;
+        lastExtra = out.extra;
+        markPlanStep(planEl, i, out.observe);
+        i += 1;
+        if (step.tool === 'compose_preview' || step.tool === 'apply_scenario' || step.tool === 'build_from_intent' || step.tool === 'build_from_tz' || step.tool === 'analyze_tz' || step.tool === 'set_theme' || step.tool === 'set_density' || step.tool === 'set_active_screen' || step.tool === 'set_title' || step.tool === 'ground_in_sb' || step.tool === 'assert_sb_compliance') {
+          renderScreens();
+          renderPreview();
+          renderSide();
+        }
+        setTimeout(runNext, 240 + Math.random() * 160);
+      }
+      setTimeout(runNext, 180);
+    }
+
+    function send() {
+      const text = (inputEl.value || '').trim();
+      if (!text || busy) return;
+      inputEl.value = '';
+      pushChat('user', text);
+      busy = true;
+      sendBtn.disabled = true;
+      if (micBtn) micBtn.disabled = true;
+      inputEl.disabled = true;
+      startThinking();
+
+      session = { ...session, turns: (session.turns || 0) + 1 };
+
+      const start = (plan) => {
+        stopThinking();
+        startThinking();
+        if (plan._llmError) {
+          pushChat('system', 'Переклюцился на локальные правила: ' + plan._llmError);
+        }
+        session.lastPlanId = plan.id;
+        session.planner = plan.planner;
+        const planEl = pushPlanCard(plan);
+        executePlan(plan, planEl);
+      };
+
+      if (typeof SbAgent.planTurnAsync === 'function') {
+        SbAgent.planTurnAsync(project, session, text).then(start).catch((err) => {
+          stopThinking();
+          pushChat('assistant', 'Не удалось обработать запрос: ' + (err && err.message ? err.message : err));
+          busy = false;
+          sendBtn.disabled = false;
+          if (micBtn) micBtn.disabled = false;
+          inputEl.disabled = false;
+        });
+      } else {
+        start(SbAgent.planTurn(project, session, text));
+      }
+    }
+
+    function toggleVoice() {
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SR) {
+        alert('Голосовой ввод поддерживается в Chrome.');
+        return;
+      }
+      if (!recognition) {
+        recognition = new SR();
+        recognition.lang = 'ru-RU';
+        recognition.interimResults = false;
+        recognition.continuous = false;
+        recognition.onresult = (event) => {
+          const text = (event.results[0] && event.results[0][0] && event.results[0][0].transcript) || '';
+          voiceListening = false;
+          syncMicUi();
+          if (text.trim()) {
+            inputEl.value = text.trim();
+            send();
+          }
+        };
+        recognition.onerror = () => {
+          voiceListening = false;
+          syncMicUi();
+        };
+        recognition.onend = () => {
+          voiceListening = false;
+          syncMicUi();
+        };
+      }
+      if (voiceListening) {
+        try { recognition.stop(); } catch (e) {}
+        voiceListening = false;
+        syncMicUi();
+        return;
+      }
+      if (busy) return;
+      try {
+        recognition.start();
+        voiceListening = true;
+        syncMicUi();
+      } catch (e) {
+        voiceListening = false;
+        syncMicUi();
+      }
+    }
+
+    function syncMicUi() {
+      if (!micBtn) return;
+      micBtn.classList.toggle('is-listening', voiceListening);
+      micBtn.innerHTML = icon(voiceListening ? 'mic-off' : 'mic', 16);
+      micBtn.title = voiceListening ? 'Остановить' : 'Голосовой ввод';
+    }
+
+    sendBtn.addEventListener('click', send);
+    inputEl.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        send();
+      }
     });
+    micBtn.addEventListener('click', toggleVoice);
+    if (settingsBtn) {
+      settingsBtn.addEventListener('click', () => toggleSettings());
+    }
+    wrap.querySelector('#sb-agent-new-chat').addEventListener('click', createNewChat);
+    wrap.querySelector('#sb-agent-clear').addEventListener('click', () => {
+      if (busy) return;
+      chatEl.innerHTML = '';
+      chatLog.length = 0;
+      pushChat('assistant',
+        '**Чат очищен.** Найду компонент, соберу экран или проверю compliance — напишите запрос или выберите чип.');
+      setChips();
+      persistActiveChat();
+      renderChatTabs();
+    });
+    wrap.querySelector('#sb-agent-refresh').addEventListener('click', () => {
+      renderPreview();
+      if (typeof showSiteToast === 'function') showSiteToast('Превью обновлено');
+    });
+
+    // Boot chats
+    const bootMsgs = (activeChat.messages || []).slice();
+    if (bootMsgs.length) {
+      paintMessages(bootMsgs);
+    } else {
+      pushChat('assistant',
+        '**Привет!** Я AI-ассистент **SB Design System**.\n\n' +
+        'Сборка превью пока на паузе — сначала проверьте подключение **LLM** в **⚙** ' +
+        '(режим LLM planner и Endpoint).\n\n' +
+        'Поиск по каталогу и compliance по-прежнему доступны.');
+    }
+    setChips();
+    renderEmptyExamples();
+    renderSide();
+    renderScreens();
+    renderPreview();
+    renderChatTabs();
+    persistActiveChat();
 
     return wrap;
   }
@@ -924,59 +1718,59 @@ pages.push({
     const wrap = document.createElement('div');
     const totalComponents = uniqueComponentsList.length;
     wrap.innerHTML = `
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:32px">
-        <div class="overview-stat-card" style="border-radius:14px;padding:20px">
-          <div style="font-size:32px;font-weight:700;color:var(--primary)">${totalComponents}</div>
-          <div style="font-size:13px;color:var(--text-secondary);margin-top:4px">Компонентов</div>
+      <div class="overview-stats-grid">
+        <div class="overview-stat-card">
+          <div class="overview-stat-value">${totalComponents}</div>
+          <div class="overview-stat-label">Компонентов</div>
         </div>
-        <div class="overview-stat-card" style="border-radius:14px;padding:20px">
-          <div style="font-size:32px;font-weight:700;color:var(--primary)">${tokenGroups.length}</div>
-          <div style="font-size:13px;color:var(--text-secondary);margin-top:4px">Групп токенов</div>
+        <div class="overview-stat-card">
+          <div class="overview-stat-value">${tokenGroups.length}</div>
+          <div class="overview-stat-label">Групп токенов</div>
         </div>
-        <div class="overview-stat-card" style="border-radius:14px;padding:20px">
-          <div style="font-size:32px;font-weight:700;color:var(--primary)">5</div>
-          <div style="font-size:13px;color:var(--text-secondary);margin-top:4px">Категорий</div>
+        <div class="overview-stat-card">
+          <div class="overview-stat-value">5</div>
+          <div class="overview-stat-label">Категорий</div>
         </div>
-        <div class="overview-stat-card" style="border-radius:14px;padding:20px">
-          <div style="font-size:32px;font-weight:700;color:var(--accent-orange)">${KIT_VERSION}</div>
-          <div style="font-size:13px;color:var(--text-secondary);margin-top:4px">Версия design systems</div>
+        <div class="overview-stat-card">
+          <div class="overview-stat-value is-accent">${KIT_VERSION}</div>
+          <div class="overview-stat-label">Версия design systems</div>
         </div>
       </div>
 
-      <h2 style="font-size:22px;margin:0 0 16px;color:var(--text-main)">Что внутри</h2>
-      <div class="overview-info-card" style="border-radius:14px;padding:24px;line-height:1.7;color:var(--text-secondary)">
+      <h2 class="overview-section-title">Что внутри</h2>
+      <div class="overview-info-card">
         Дизайн-система SB построена на простых vanilla-технологиях без npm и сборщиков.
-        Все компоненты описаны как data-driven структуры и рендерятся через <code class="overview-inline-code">&lt;template&gt;</code>.
-        Выберите раздел в левом меню, чтобы увидеть токены или компоненты в работе.
+        Все компоненты описаны как data-driven структуры и рендерятся церез <code class="overview-inline-code">&lt;template&gt;</code>.
+        Выберите раздел в меню, цтобы увидеть токены или компоненты в работе.
       </div>
 
-      <h2 style="font-size:22px;margin:32px 0 16px;color:var(--text-main)">Быстрый доступ</h2>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px">
-        <a href="#icon-pack" class="quick-link overview-quick-link" style="display:block;border-radius:10px;padding:18px;text-decoration:none;color:inherit;transition:all 0.2s">
-          <div style="margin-bottom:8px">${icon('layers', 24)}</div>
-          <div style="font-weight:700;color:var(--text-main)">Пак иконок</div>
-          <div style="font-size:12px;color:var(--text-secondary);margin-top:4px">${typeof iconPack !== 'undefined' ? iconPack.length : '—'} иконок</div>
+      <h2 class="overview-section-title overview-section-title--spaced">Быстрый доступ</h2>
+      <div class="overview-links-grid">
+        <a href="#icon-pack" class="quick-link overview-quick-link">
+          <div class="overview-quick-icon">${icon('layers', 24)}</div>
+          <div class="overview-quick-title">Пак иконок</div>
+          <div class="overview-quick-meta">${typeof iconPack !== 'undefined' ? iconPack.length : '—'} иконок</div>
         </a>
-        <a href="#tokens-overview" class="quick-link overview-quick-link" style="display:block;border-radius:10px;padding:18px;text-decoration:none;color:inherit;transition:all 0.2s">
-          <div style="margin-bottom:8px">${icon('folder', 24)}</div>
-          <div style="font-weight:700;color:var(--text-main)">Обзор токенов</div>
-          <div style="font-size:12px;color:var(--text-secondary);margin-top:4px">Все группы</div>
+        <a href="#tokens-overview" class="quick-link overview-quick-link">
+          <div class="overview-quick-icon">${icon('folder', 24)}</div>
+          <div class="overview-quick-title">Обзор токенов</div>
+          <div class="overview-quick-meta">Все группы</div>
         </a>
         ${tokenGroups.map((g, i) => `
-          <a href="#token-${i}" class="quick-link overview-quick-link" style="display:block;border-radius:10px;padding:18px;text-decoration:none;color:inherit;transition:all 0.2s">
-            <div style="margin-bottom:8px">${icon(tokenIconIds[i] || 'grid', 24)}</div>
-            <div style="font-weight:700;color:var(--text-main)">${g.title}</div>
-            <div style="font-size:12px;color:var(--text-secondary);margin-top:4px">${g.items.length} токенов</div>
+          <a href="#token-${i}" class="quick-link overview-quick-link">
+            <div class="overview-quick-icon">${icon(tokenIconIds[i] || 'grid', 24)}</div>
+            <div class="overview-quick-title">${g.title}</div>
+            <div class="overview-quick-meta">${g.items.length} токенов</div>
           </a>
         `).join('')}
         ${categoryOrder.map(cat => {
           const keys = [cat.key, ...(cat.extraKeys || [])];
           const count = uniqueComponentsList.filter(c => keys.includes(c.category)).length;
           return `
-            <a href="#cat-${cat.key.toLowerCase().replace(/\s/g,'-')}" class="quick-link overview-quick-link" style="display:block;border-radius:10px;padding:18px;text-decoration:none;color:inherit;transition:all 0.2s">
-              <div style="margin-bottom:8px">${icon(compIconIds[cat.key] || 'grid', 24)}</div>
-              <div style="font-weight:700;color:var(--text-main)">${cat.label}</div>
-              <div style="font-size:12px;color:var(--text-secondary);margin-top:4px">${count} компонентов</div>
+            <a href="#cat-${cat.key.toLowerCase().replace(/\s/g,'-')}" class="quick-link overview-quick-link">
+              <div class="overview-quick-icon">${icon(compIconIds[cat.key] || 'grid', 24)}</div>
+              <div class="overview-quick-title">${cat.label}</div>
+              <div class="overview-quick-meta">${count} компонентов</div>
             </a>
           `;
         }).join('')}
@@ -993,7 +1787,7 @@ pages.push({
   iconId: 'folder',
   label: 'Обзор токенов',
   title: 'Обзор токенов',
-  subtitle: 'Все группы дизайн-токенов SB design systems — цвета, типографика, отступы, границы, радиусы, тени, размеры и анимация.',
+  subtitle: 'Все группы дизайн-токенов SB design systems — хвета, типографика, отступы, гранихы, радиусы, тени, размеры и анимахия.',
   build: () => {
     const wrap = document.createElement('div');
     wrap.className = 'tokens-grid';
@@ -1048,7 +1842,7 @@ categoryOrder.forEach(cat => {
       const toc = document.createElement('aside');
       toc.className = 'toc';
       toc.innerHTML = `
-        <div class="toc-title">На странице</div>
+        <div class="toc-title">На странихе</div>
         ${items.map(c => `<button class="toc-link" data-toc-target="${componentDomId(c)}">${c.name}</button>`).join('')}
       `;
       wrap.appendChild(toc);

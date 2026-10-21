@@ -6442,3 +6442,33 @@ footer {
   max-width: 140px;
 }
 .sb-gauge.size-m .sb-gauge-label { font-size: 12px; }
+/* Mobile polish for showcases inside design-system */
+@media (max-width: 900px) {
+  .component-showcase,
+  .navbar-showcase,
+  .tabs-showcase,
+  .bc-showcase,
+  .pg-showcase {
+    gap: 12px;
+  }
+  .showcase-demo,
+  .showcase-demo.is-responsive-preview {
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .showcase-demo.is-responsive-preview.size-1024,
+  .showcase-demo.is-responsive-preview.size-1440 {
+    width: 100%;
+  }
+  .ai-prompt-header,
+  .ai-prompt-body,
+  .ai-prompt-footer {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+  .ai-prompt-code {
+    font-size: 12px;
+    max-height: 42vh;
+  }
+}

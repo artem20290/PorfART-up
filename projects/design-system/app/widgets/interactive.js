@@ -2326,7 +2326,7 @@ function initCommandPalette() {
         name: `Шаблон: ${t.label}`, id: t.id, iconId: t.iconId, type: 'page'
       })) : []),
       { name: 'Tokens Playground', id: 'tokens-playground', iconId: 'contrast', type: 'page' },
-      { name: 'AI Builder', id: 'ai-builder', iconId: 'settings', type: 'page' },
+      { name: 'SB Agent', id: 'ai-builder', iconId: 'zap', type: 'page' },
       { name: 'All Components', id: 'all-components', iconId: 'file-text', type: 'page' },
     ];
 

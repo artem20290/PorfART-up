@@ -229,12 +229,26 @@ function initMobileSidebar() {
   const toggle = document.getElementById('sidebarToggle');
   const sidebar = document.getElementById('sidebar');
   const backdrop = document.getElementById('sidebarBackdrop');
-  toggle.addEventListener('click', () => {
+
+  function openSidebar() {
     sidebar.classList.add('open');
     backdrop.classList.add('show');
-  });
-  backdrop.addEventListener('click', () => {
+    toggle.setAttribute('aria-expanded', 'true');
+  }
+
+  function closeSidebar() {
     sidebar.classList.remove('open');
     backdrop.classList.remove('show');
+    toggle.setAttribute('aria-expanded', 'false');
+  }
+
+  toggle.setAttribute('aria-expanded', 'false');
+  toggle.addEventListener('click', () => {
+    if (sidebar.classList.contains('open')) closeSidebar();
+    else openSidebar();
+  });
+  backdrop.addEventListener('click', closeSidebar);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && sidebar.classList.contains('open')) closeSidebar();
   });
 }
