@@ -3,6 +3,7 @@
   var STATUSES = ["В работе", "Просрочено", "Завершено", "Отменено"];
   var QUICK = [
     "Что просрочено?",
+    "Администратор",
     "Найди Петрова",
     "Высокий приоритет",
     "Сводка по доске",
@@ -24,10 +25,34 @@
   };
 
   var recognition = null;
-  var MIC_SVG =
-    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>';
-  var MIC_OFF_SVG =
-    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="2" y1="2" x2="22" y2="22"/><path d="M18.89 13.23A7.12 7.12 0 0 0 19 12v-2"/><path d="M5 10v2a7 7 0 0 0 12 5"/><path d="M15 9.34V5a3 3 0 0 0-5.68-1.33"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12"/><line x1="12" y1="19" x2="12" y2="22"/></svg>';
+  /* SB design systems — Icon Pack (stroke 2.2, viewBox 0 0 24 24) */
+  var SB_ICONS = {
+    settings:
+      '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
+    refresh:
+      '<polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>',
+    "chevron-down": '<path d="M6 9l6 6 6-6"/>',
+    "chevron-up": '<path d="M18 15l-6-6-6 6"/>',
+    close: '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+    "arrow-right": '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
+    mic: '<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/>',
+    "mic-off":
+      '<line x1="2" y1="2" x2="22" y2="22"/><path d="M18.89 13.23A7.12 7.12 0 0 0 19 12v-2"/><path d="M5 10v2a7 7 0 0 0 12 5"/><path d="M15 9.34V5a3 3 0 0 0-5.68-1.33"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12"/><line x1="12" y1="19" x2="12" y2="22"/>',
+  };
+  function sbIcon(id, size) {
+    var paths = SB_ICONS[id];
+    if (!paths) return "";
+    var s = size || 16;
+    return (
+      '<svg width="' +
+      s +
+      '" height="' +
+      s +
+      '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      paths +
+      "</svg>"
+    );
+  }
 
   function ensureRecognition() {
     if (recognition) return recognition;
@@ -61,7 +86,7 @@
     var input = panel.querySelector("[data-input]");
     if (mic) {
       mic.classList.toggle("is-listening", state.voiceListening);
-      mic.innerHTML = state.voiceListening ? MIC_OFF_SVG : MIC_SVG;
+      mic.innerHTML = sbIcon(state.voiceListening ? "mic-off" : "mic", 16);
       mic.title = state.voiceListening ? "Остановить" : "Голосовой ввод";
       mic.setAttribute("aria-pressed", state.voiceListening ? "true" : "false");
     }
@@ -325,6 +350,17 @@
       );
     }
 
+    if (/^администратор$|кабинет админ|раздел админ|админ.?отчёт|админ.?отчет|сформируй отчёт|сформируй отчет/.test(q)) {
+      try {
+        location.href = "./admin/index.html";
+      } catch (e) {}
+      return (
+        "**Раздел «Администратор»**\n\n" +
+        "Открываю страницу платформы: сводка, просрочки, приоритеты, исполнитель, предприятие, совещание.\n" +
+        "На доске сейчас просрочено: **" + overdue.length + "**."
+      );
+    }
+
     if (/просроч|дедлайн|срыв|опозда/.test(q)) {
       clickStatusTab("Просрочено");
       if (!overdue.length) {
@@ -340,7 +376,8 @@
           .join("\n") +
         "\n\nОткрыл фильтр **Просрочено**. Скажите «открой " +
         overdue[0].id +
-        "», чтобы раскрыть карточку.\n\n*Реестр поручений*"
+        "», чтобы раскрыть карточку.\n" +
+        "Для полного отчёта с RAG/LLM: «Сформируй отчёт RAG».\n\n*Реестр поручений*"
       );
     }
 
@@ -503,19 +540,62 @@
       "    <strong>AI-ассистент</strong>" +
       '    <span data-status>Онлайн · Доска поручений</span>' +
       "  </div>" +
-      '  <button type="button" class="poru-ai-icon-btn" data-clear title="Сбросить">↺</button>' +
-      '  <button type="button" class="poru-ai-icon-btn" data-min title="Свернуть">▾</button>' +
+      '  <button type="button" class="poru-ai-icon-btn" data-settings title="Настройки агента" aria-label="Настройки агента" aria-expanded="false">' +
+      sbIcon("settings", 16) +
+      "</button>" +
+      '  <button type="button" class="poru-ai-icon-btn" data-clear title="Сбросить" aria-label="Сбросить">' +
+      sbIcon("refresh", 16) +
+      "</button>" +
+      '  <button type="button" class="poru-ai-icon-btn" data-min title="Свернуть" aria-label="Свернуть">' +
+      sbIcon("chevron-down", 16) +
+      "</button>" +
+      "</div>" +
+      '<div class="poru-ai-settings" data-settings-panel hidden>' +
+      '  <div class="poru-ai-settings-head"><strong>Настройки агента</strong>' +
+      '  <button type="button" class="poru-ai-icon-btn" data-settings-close title="Закрыть" aria-label="Закрыть">' +
+      sbIcon("close", 16) +
+      "</button></div>" +
+      '  <p class="poru-ai-settings-lead">Для исполнителя — чипы и голос. Полный контур управления — в кабинете администратора.</p>' +
+      '  <ul class="poru-ai-settings-list">' +
+      "    <li>Голос: микрофон в композере (Chrome, ru-RU)</li>" +
+      "    <li>Сброс сессии: кнопка обновления</li>" +
+      "    <li>Админ: сводка, просрочки, приоритеты, предприятия, совещание</li>" +
+      "  </ul>" +
+      '  <button type="button" class="poru-ai-settings-cta" data-open-rag>Перейти в раздел «Администратор»</button>' +
       "</div>" +
       '<div class="poru-ai-body" data-chat></div>' +
       '<div class="poru-ai-chips" data-chips></div>' +
       '<div class="poru-ai-composer">' +
       '  <button type="button" class="poru-ai-mic" data-mic title="Голосовой ввод" aria-label="Голосовой ввод" aria-pressed="false">' +
-      MIC_SVG +
+      sbIcon("mic", 16) +
       "</button>" +
       '  <input type="text" data-input placeholder="Например: что просрочено? найди Петрова…" />' +
-      '  <button type="button" class="poru-ai-send" data-send>→</button>' +
+      '  <button type="button" class="poru-ai-send" data-send aria-label="Отправить">' +
+      sbIcon("arrow-right", 16) +
+      "</button>" +
       "</div>";
     document.body.appendChild(panel);
+
+    function toggleSettings(force) {
+      var sp = panel.querySelector("[data-settings-panel]");
+      var sb = panel.querySelector("[data-settings]");
+      var open = typeof force === "boolean" ? force : sp.hidden;
+      sp.hidden = !open;
+      sb.setAttribute("aria-expanded", open ? "true" : "false");
+      sb.classList.toggle("is-active", open);
+      panel.classList.toggle("settings-open", open);
+    }
+    panel.querySelector("[data-settings]").addEventListener("click", function (e) {
+      e.stopPropagation();
+      toggleSettings();
+    });
+    panel.querySelector("[data-settings-close]").addEventListener("click", function () {
+      toggleSettings(false);
+    });
+    panel.querySelector("[data-open-rag]").addEventListener("click", function () {
+      toggleSettings(false);
+      location.href = "./admin/index.html";
+    });
 
     // chips
     var chips = panel.querySelector("[data-chips]");
@@ -554,11 +634,15 @@
 
     panel.querySelectorAll("[data-min]").forEach(function (el) {
       el.addEventListener("click", function (e) {
-        if (e.target.closest("[data-clear]")) return;
+        if (e.target.closest("[data-clear], [data-settings], [data-settings-close], [data-open-rag]")) return;
+        if (panel.classList.contains("settings-open")) toggleSettings(false);
         state.minimized = !state.minimized;
         panel.classList.toggle("is-min", state.minimized);
         var minBtn = panel.querySelectorAll("[data-min].poru-ai-icon-btn");
-        if (minBtn[0]) minBtn[0].textContent = state.minimized ? "▴" : "▾";
+        if (minBtn[0]) {
+          minBtn[0].innerHTML = sbIcon(state.minimized ? "chevron-up" : "chevron-down", 16);
+          minBtn[0].title = state.minimized ? "Развернуть" : "Свернуть";
+        }
       });
     });
 

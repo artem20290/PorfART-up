@@ -1,0 +1,5 @@
+/* Навигация «Доска | Администратор» отключена — стили не применяются. */
+.poru-board-nav,
+.poru-app-nav {
+  display: none !important;
+}
