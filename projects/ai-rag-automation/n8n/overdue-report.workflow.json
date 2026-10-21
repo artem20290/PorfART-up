@@ -1,0 +1,107 @@
+{
+  "name": "Porucheniya Overdue Report · RAG + LLM",
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "description": "Админ-отчёт: webhook → RAG → просрочки → LLM-отчёт. Расписание к совещанию дирекции. UI: ../index.html"
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "porucheniya-overdue-report",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "wh-1",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.VECTOR_API}}/query",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"collection\": \"porucheniya-policy\",\n  \"query\": \"{{$json.body.task || 'просроченные поручения отчёт регламент'}}\",\n  \"top_k\": 4\n}",
+        "options": {}
+      },
+      "id": "rag-1",
+      "name": "RAG · Qdrant/Chroma query",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [260, 0]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{$env.TASKS_API}}/tasks?status=Просрочено",
+        "options": {}
+      },
+      "id": "tasks-1",
+      "name": "Tool · find_overdue_tasks",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [520, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "const rag = $('RAG · Qdrant/Chroma query').item.json;\nconst tasks = $('Tool · find_overdue_tasks').item.json;\nconst chunks = rag.matches || rag.results || rag.documents || [];\nconst list = Array.isArray(tasks) ? tasks : (tasks.items || []);\nconst ragText = chunks.map((c,i)=>`[${i+1}] ${c.payload?.source || c.metadata?.source || ''}: ${c.payload?.text || c.pageContent || c.document || ''}`).join('\\n');\nreturn [{\n  json: {\n    model: $env.LLM_MODEL || 'gpt-4o-mini',\n    temperature: 0.2,\n    max_tokens: 900,\n    messages: [\n      { role: 'system', content: 'Ты агент отчётов по поручениям. Только факты из RAG и tools. Не выдумывай ID. Промпт v1.1.0.' },\n      { role: 'user', content: `Задача: сформируй отчёт по просрочкам.\\n\\nRAG:\\n${ragText}\\n\\nTasks JSON:\\n${JSON.stringify(list)}` }\n    ]\n  }\n}];"
+      },
+      "id": "code-1",
+      "name": "Build prompt (few-shot/CoT ready)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [780, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.LLM_ENDPOINT || 'https://api.openai.com/v1/chat/completions'}}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{JSON.stringify($json)}}",
+        "options": {}
+      },
+      "id": "llm-1",
+      "name": "LLM · chat completions",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1040, 0]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { report: $json.choices[0].message.content, architecture: 'n8n Plan-and-Execute', rag: true } }}",
+        "options": {}
+      },
+      "id": "resp-1",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1300, 0]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [[{ "node": "RAG · Qdrant/Chroma query", "type": "main", "index": 0 }]]
+    },
+    "RAG · Qdrant/Chroma query": {
+      "main": [[{ "node": "Tool · find_overdue_tasks", "type": "main", "index": 0 }]]
+    },
+    "Tool · find_overdue_tasks": {
+      "main": [[{ "node": "Build prompt (few-shot/CoT ready)", "type": "main", "index": 0 }]]
+    },
+    "Build prompt (few-shot/CoT ready)": {
+      "main": [[{ "node": "LLM · chat completions", "type": "main", "index": 0 }]]
+    },
+    "LLM · chat completions": {
+      "main": [[{ "node": "Respond", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "pinData": {}
+}

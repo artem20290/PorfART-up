@@ -512,6 +512,47 @@ const employees = generateEmployees();
         kpi: { performanceScore: 29, lastReviewDate: daysAgo(70), tasksCompleted: 3, tasksOverdue: 18, overtimeHours: 0 },
         metrics: { absenteeismDays: 18, lateCount: 14, sickDays: 11, workloadPercent: 22, teamSize: 0, budgetResponsibility: 0, criticalIncidents: 4 },
     });
+    // Дубль роли PLANS в той же ORGEH (Бета · Ведущий инженер)
+    pushDemo({
+        fullName: "Орлов Никита Андреевич",
+        position: "Ведущий инженер",
+        department: `${beta.name} · Производство`,
+        orgUnitId: beta.orgId,
+        managerId: betaGm?.id ?? "emp-001",
+        salary: 142000,
+        kpi: { performanceScore: 71, lastReviewDate: daysAgo(18), tasksCompleted: 22, tasksOverdue: 2, overtimeHours: 10 },
+        metrics: { absenteeismDays: 2, lateCount: 1, sickDays: 1, workloadPercent: 74, teamSize: 0, budgetResponsibility: 0, criticalIncidents: 0 },
+    });
+    // Дыра: битая ссылка на руководителя
+    pushDemo({
+        fullName: "Белов Артём Сергеевич",
+        position: "Инженер по качеству",
+        department: "Завод «Альфа» · Качество",
+        orgUnitId: "org-002",
+        managerId: "emp-DOES-NOT-EXIST",
+        salary: 110000,
+        kpi: { performanceScore: 55, lastReviewDate: daysAgo(40), tasksCompleted: 14, tasksOverdue: 4, overtimeHours: 6 },
+        metrics: { absenteeismDays: 3, lateCount: 2, sickDays: 1, workloadPercent: 60, teamSize: 0, budgetResponsibility: 0, criticalIncidents: 1 },
+    });
+    // Дыра: нет managerId у не-корневого
+    pushDemo({
+        fullName: "Тихонова Ольга Викторовна",
+        position: "Экономист",
+        department: `${beta.name} · Экономика`,
+        orgUnitId: beta.orgId,
+        managerId: null,
+        salary: 125000,
+        kpi: { performanceScore: 66, lastReviewDate: daysAgo(25), tasksCompleted: 19, tasksOverdue: 2, overtimeHours: 8 },
+        metrics: { absenteeismDays: 0, lateCount: 0, sickDays: 1, workloadPercent: 70, teamSize: 0, budgetResponsibility: 0, criticalIncidents: 0 },
+    });
+})();
+// Cost center mismatch: IT0027 ≠ OM KOSTL оргединицы
+(function injectCostCenterMismatch() {
+    const petrova = employees.find((e) => e.fullName === "Петрова Мария Ивановна");
+    if (petrova) {
+        petrova.sap = petrova.sap || {};
+        petrova.sap.infotype0027 = "CC-WRONG-77";
+    }
 })();
 const orgUnits = buildOrgUnits(employees);
 Math.random = __orgRand;
@@ -870,13 +911,31 @@ function PreviewOrgProvider({ children }) {
     const [messages, setMessages] = useState([
         {
             role: "assistant",
-            text: "**Привет!** Я корпоративный AI-ассистент по оргструктуре SAP ERP HCM.\n\nМогу **найти сотрудника** (например, Петрова), показать **неэффективные зоны**, сравнить подразделения и открыть карточку на оргкарте.\n\nПопробуйте быстрые запросы ниже — или напишите свой.",
+            text: "**Привет!** Я корпоративный AI-ассистент по оргструктуре SAP ERP HCM.\n\nМогу **найти сотрудника** (например, Петрова), показать **неэффективные зоны**, сравнить подразделения и открыть карточку на оргкарте.\n\nВ настройках — архитектура (Plan-and-Execute / ReAct), **RAG** и подключение LLM. Полный кабинет: чип **Администратор**.",
         },
     ]);
     const [aiLoading, setAiLoading] = useState(false);
+    const [agentStatus, setAgentStatus] = useState("Онлайн · SAP ERP HCM");
     const [filterDeptId, setFilterDeptId] = useState(null);
     const [filterLevel, setFilterLevel] = useState("all");
     const [voiceListening, setVoiceListening] = useState(false);
+    useEffect(() => {
+        const sync = () => {
+            const ag = window.OrgAdminAgent;
+            if (ag && typeof ag.setLiveOrg === "function") {
+                ag.setLiveOrg(orgData);
+            }
+            if (ag && ag.statusLabel)
+                setAgentStatus(ag.statusLabel());
+        };
+        sync();
+        window.addEventListener("org-admin-agent-ready", sync);
+        window.addEventListener("storage", sync);
+        return () => {
+            window.removeEventListener("org-admin-agent-ready", sync);
+            window.removeEventListener("storage", sync);
+        };
+    }, [orgData]);
     const revealEmployee = useCallback((emp) => {
         if (!emp)
             return;
@@ -893,20 +952,12 @@ function PreviewOrgProvider({ children }) {
         const isIneff = /неэффект|не эффект|низк|производител|мертв|риск|проблем|выяв|плох|слабые|аутсайдер|кто тянет|отстающ|отстают/.test(lower);
         setMessages((m) => [...m, { role: "user", text }]);
         setAiLoading(true);
-        await new Promise((r) => setTimeout(r, 450 + Math.random() * 700));
 
+        // Фокус на карте (UI) — как раньше
         if (isSearch) {
             const namePart = text.replace(/^(найди|покажи|открой|найти|кто такой|кто такая|где|карточку|профиль)\s*/i, "").trim() || text;
             const found = searchEmployees(orgData, namePart.length >= 2 ? namePart : text);
-            if (found.length === 1) {
-                const emp = found[0];
-                revealEmployee(emp);
-                setMessages((m) => [...m, { role: "assistant", text: `Нашёл и открыл на оргкарте:\n\n${empSummary(emp)}\n\n**Вердикт:** ${getVerdict(emp)}\n\n*Карточка и KPI — в панели справа*` }]);
-                setAiLoading(false);
-                return;
-            }
-            if (found.length > 1) {
-                // «Найди Петрова» = род.п. муж. фамилии, не «Петрова Мария»
+            if (found.length) {
                 let pick = found[0];
                 const wantFemalePetrova = /петрова\s+[а-яё]/i.test(lower);
                 const demoHit = found.find((e) => String(e.id || "").startsWith("emp-demo") &&
@@ -924,40 +975,9 @@ function PreviewOrgProvider({ children }) {
                         pick = male;
                 }
                 revealEmployee(pick);
-                const list = found.slice(0, 5).map((e, i) => `${i + 1}. **${e.fullName}** — KPI ${e.kpi.performanceScore}, ${e.position}`).join("\n");
-                setMessages((m) => [...m, { role: "assistant", text: `Нашёл **${found.length}** совпадений. Перенёс карту на **${pick.fullName}**.\n\n${list}\n\n${empSummary(pick)}\n\n**Вердикт:** ${getVerdict(pick)}\n\n*Клик по ФИО в списке — открыть другого*` }]);
-                setAiLoading(false);
-                return;
-            }
-            setMessages((m) => [...m, { role: "assistant", text: `Не нашёл сотрудника по запросу «${namePart}». Попробуйте фамилию целиком или спросите «кто неэффективен».` }]);
-            setAiLoading(false);
-            return;
-        }
-        const fireTriggers = ["уволить", "сократить", "убрать", "увольн", "можно ли"];
-        if (fireTriggers.some((t) => lower.includes(t))) {
-            const found = searchEmployees(orgData, text);
-            if (found.length) {
-                const emp = found[0];
-                revealEmployee(emp);
-                setMessages((m) => [...m, { role: "assistant", text: `${empSummary(emp)}\n\n**Вердикт:** ${getVerdict(emp)}` }]);
-                setAiLoading(false);
-                return;
             }
         }
-        // Person-like free text without trigger words
-        const softFound = searchEmployees(orgData, text);
-        if (softFound.length && extractSearchTokens(text).some((t) => t.length >= 5) && softFound.length <= 8) {
-            const looksName = softFound[0].fullName.toLowerCase().split(/\s+/).some((p) => lower.includes(normalizeNameToken(p)) || lower.includes(p));
-            if (looksName) {
-                const emp = softFound[0];
-                revealEmployee(emp);
-                setMessages((m) => [...m, { role: "assistant", text: `${empSummary(emp)}\n\n**Вердикт:** ${getVerdict(emp)}\n\n*Карточка открыта на оргкарте*` }]);
-                setAiLoading(false);
-                return;
-            }
-        }
-        const reply = generateAIResponse(text, orgData);
-        if (isIneff) {
+        else if (isIneff) {
             const active = orgData.employees.filter((e) => e.employmentStatus === "active");
             const lowPerf = active
                 .filter((e) => e.kpi.performanceScore < 45)
@@ -966,6 +986,63 @@ function PreviewOrgProvider({ children }) {
             if (demoLow)
                 revealEmployee(demoLow);
         }
+        else {
+            const softFound = searchEmployees(orgData, text);
+            if (softFound.length && extractSearchTokens(text).some((t) => t.length >= 5) && softFound.length <= 8) {
+                const looksName = softFound[0].fullName.toLowerCase().split(/\s+/).some((p) => lower.includes(normalizeNameToken(p)) || lower.includes(p));
+                if (looksName)
+                    revealEmployee(softFound[0]);
+            }
+        }
+
+        // RAG / Plan-and-Execute / ReAct через кабинет администратора
+        const agent = window.OrgAdminAgent;
+        if (agent && agent.ready && typeof agent.run === "function") {
+            try {
+                if (agent.statusLabel)
+                    setAgentStatus(agent.statusLabel());
+                const result = await agent.run(text);
+                if (result.focusEmployee && result.focusEmployee.fullName) {
+                    const mapHit = searchEmployees(orgData, result.focusEmployee.fullName);
+                    if (mapHit[0])
+                        revealEmployee(mapHit[0]);
+                }
+                let answer = result.answer || "Пустой ответ агента.";
+                if (result.meta) {
+                    const bits = [result.meta.architecture, result.meta.provider, result.meta.ragSources?.length ? `RAG ×${result.meta.ragSources.length}` : null].filter(Boolean);
+                    if (bits.length)
+                        answer += `\n\n_${bits.join(" · ")}_`;
+                }
+                setMessages((m) => [...m, { role: "assistant", text: answer }]);
+                setAiLoading(false);
+                return;
+            }
+            catch (err) {
+                console.warn("OrgAdminAgent failed, fallback", err);
+            }
+        }
+
+        await new Promise((r) => setTimeout(r, 450 + Math.random() * 700));
+        if (isSearch) {
+            const namePart = text.replace(/^(найди|покажи|открой|найти|кто такой|кто такая|где|карточку|профиль)\s*/i, "").trim() || text;
+            const found = searchEmployees(orgData, namePart.length >= 2 ? namePart : text);
+            if (found.length === 1) {
+                setMessages((m) => [...m, { role: "assistant", text: `Нашёл и открыл на оргкарте:\n\n${empSummary(found[0])}\n\n**Вердикт:** ${getVerdict(found[0])}\n\n*Карточка и KPI — в панели справа*` }]);
+                setAiLoading(false);
+                return;
+            }
+            if (found.length > 1) {
+                const pick = found[0];
+                const list = found.slice(0, 5).map((e, i) => `${i + 1}. **${e.fullName}** — KPI ${e.kpi.performanceScore}, ${e.position}`).join("\n");
+                setMessages((m) => [...m, { role: "assistant", text: `Нашёл **${found.length}** совпадений. Перенёс карту на **${pick.fullName}**.\n\n${list}\n\n${empSummary(pick)}\n\n**Вердикт:** ${getVerdict(pick)}` }]);
+                setAiLoading(false);
+                return;
+            }
+            setMessages((m) => [...m, { role: "assistant", text: `Не нашёл сотрудника по запросу «${namePart}».` }]);
+            setAiLoading(false);
+            return;
+        }
+        const reply = generateAIResponse(text, orgData);
         setMessages((m) => [...m, { role: "assistant", text: reply }]);
         setAiLoading(false);
     }, [orgData, revealEmployee]);
@@ -991,7 +1068,13 @@ function PreviewOrgProvider({ children }) {
         setAIProvider: () => { },
         voiceListening,
         setVoiceListening,
-    }), [orgData, selectedEmployee, messages, aiLoading, sendMessage, revealEmployee, filterDeptId, filterLevel, voiceListening]);
+        agentStatus,
+        refreshAgentStatus: () => {
+            const ag = window.OrgAdminAgent;
+            if (ag && ag.statusLabel)
+                setAgentStatus(ag.statusLabel());
+        },
+    }), [orgData, selectedEmployee, messages, aiLoading, sendMessage, revealEmployee, filterDeptId, filterLevel, voiceListening, agentStatus]);
     return React.createElement(OrgContext.Provider, { value: value }, children);
 }
 
@@ -1992,26 +2075,28 @@ function getAnalytics(orgData) {
 }
 
 
-// --- src/preview/lucide-shim.tsx ---
+// --- src/preview/lucide-shim.tsx — SB design systems Icon Pack ---
 function Icon({ size = 16, className, style, children }) {
-    return (React.createElement("svg", { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", className: className, style: style }, children));
+    return (React.createElement("svg", { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2.2", strokeLinecap: "round", strokeLinejoin: "round", className: className, style: style }, children));
 }
 function Send(p) {
     return React.createElement(Icon, { ...p },
-        React.createElement("path", { d: "M22 2 11 13" }),
-        React.createElement("path", { d: "M22 2 15 22 11 13 2 9 22 2z" }));
+        React.createElement("path", { d: "M5 12h14" }),
+        React.createElement("path", { d: "m12 5 7 7-7 7" }));
 }
 function Mic(p) {
     return React.createElement(Icon, { ...p },
-        React.createElement("path", { d: "M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" }),
+        React.createElement("path", { d: "M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" }),
         React.createElement("path", { d: "M19 10v2a7 7 0 0 1-14 0v-2" }),
         React.createElement("line", { x1: "12", x2: "12", y1: "19", y2: "22" }));
 }
 function MicOff(p) {
     return React.createElement(Icon, { ...p },
         React.createElement("line", { x1: "2", x2: "22", y1: "2", y2: "22" }),
-        React.createElement("path", { d: "M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V5a3 3 0 0 0-5.94-.6" }),
-        React.createElement("path", { d: "M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23" }),
+        React.createElement("path", { d: "M18.89 13.23A7.12 7.12 0 0 0 19 12v-2" }),
+        React.createElement("path", { d: "M5 10v2a7 7 0 0 0 12 5" }),
+        React.createElement("path", { d: "M15 9.34V5a3 3 0 0 0-5.68-1.33" }),
+        React.createElement("path", { d: "M9 9v3a3 3 0 0 0 5.12 2.12" }),
         React.createElement("line", { x1: "12", x2: "12", y1: "19", y2: "22" }));
 }
 function Bot(p) {
@@ -2022,7 +2107,7 @@ function Bot(p) {
 }
 function User(p) {
     return React.createElement(Icon, { ...p },
-        React.createElement("path", { d: "M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" }),
+        React.createElement("path", { d: "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" }),
         React.createElement("circle", { cx: "12", cy: "7", r: "4" }));
 }
 function Loader2(p) {
@@ -2031,23 +2116,31 @@ function Loader2(p) {
 }
 function ChevronUp(p) {
     return React.createElement(Icon, { ...p },
-        React.createElement("path", { d: "m18 15-6-6-6 6" }));
+        React.createElement("path", { d: "M18 15l-6-6-6 6" }));
 }
 function ChevronDown(p) {
     return React.createElement(Icon, { ...p },
-        React.createElement("path", { d: "m6 9 6 6 6-6" }));
+        React.createElement("path", { d: "M6 9l6 6 6-6" }));
 }
 function ChevronRight(p) {
     return React.createElement(Icon, { ...p },
-        React.createElement("path", { d: "m9 18 6-6-6-6" }));
+        React.createElement("path", { d: "M9 6l6 6-6 6" }));
 }
 function Trash2(p) {
     return React.createElement(Icon, { ...p },
-        React.createElement("path", { d: "M3 6h18" }),
-        React.createElement("path", { d: "M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" }),
-        React.createElement("path", { d: "M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" }),
-        React.createElement("line", { x1: "10", x2: "10", y1: "11", y2: "17" }),
-        React.createElement("line", { x1: "14", x2: "14", y1: "11", y2: "17" }));
+        React.createElement("polyline", { points: "23 4 23 10 17 10" }),
+        React.createElement("polyline", { points: "1 20 1 14 7 14" }),
+        React.createElement("path", { d: "M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" }));
+}
+function Settings(p) {
+    return React.createElement(Icon, { ...p },
+        React.createElement("circle", { cx: "12", cy: "12", r: "3" }),
+        React.createElement("path", { d: "M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" }));
+}
+function CloseIcon(p) {
+    return React.createElement(Icon, { ...p },
+        React.createElement("line", { x1: "18", y1: "6", x2: "6", y2: "18" }),
+        React.createElement("line", { x1: "6", y1: "6", x2: "18", y2: "18" }));
 }
 function Volume2(p) {
     return React.createElement(Icon, { ...p },
@@ -2375,13 +2468,66 @@ function renderAssistantText(text, orgData, revealEmployee) {
     });
 }
 function AIPanel({ theme, previewMode = false }) {
-    const { messages, aiLoading, aiProvider, sendMessage, setAIProvider, voiceListening, setVoiceListening, clearMessages, selectedEmployee, orgData, revealEmployee } = useOrg();
+    const { messages, aiLoading, sendMessage, voiceListening, setVoiceListening, clearMessages, selectedEmployee, orgData, revealEmployee, agentStatus, refreshAgentStatus } = useOrg();
     const orgPanelShift = selectedEmployee ? PANEL_W + 48 : 0;
     const [input, setInput] = useState("");
     const [minimized, setMinimized] = useState(false);
+    const [settingsOpen, setSettingsOpen] = useState(false);
+    const [cfgMode, setCfgMode] = useState("plan-execute");
+    const [cfgRag, setCfgRag] = useState(true);
+    const [cfgEndpoint, setCfgEndpoint] = useState("");
+    const [cfgApiKey, setCfgApiKey] = useState("");
+    const [cfgModel, setCfgModel] = useState("gpt-4o-mini");
+    const [cfgTemp, setCfgTemp] = useState(0.2);
+    const [cfgHint, setCfgHint] = useState("Без endpoint ответ собирается локально: RAG + реестр.");
     const [autoSpeak, setAutoSpeak] = useState(true);
     const chatRef = useRef(null);
     const recognitionRef = useRef(null);
+    const fillSettingsFromAgent = useCallback(() => {
+        const ag = window.OrgAdminAgent;
+        if (!ag || !ag.loadLlmConfig)
+            return;
+        const cfg = ag.loadLlmConfig();
+        setCfgMode(cfg.mode === "react" ? "react" : "plan-execute");
+        setCfgRag(cfg.ragEnabled !== false);
+        setCfgEndpoint(cfg.endpoint || "");
+        setCfgApiKey(cfg.apiKey || "");
+        setCfgModel(cfg.model || "gpt-4o-mini");
+        setCfgTemp(cfg.temperature ?? 0.2);
+    }, []);
+    const openSettings = useCallback((open) => {
+        if (open)
+            fillSettingsFromAgent();
+        setSettingsOpen(open);
+    }, [fillSettingsFromAgent]);
+    const saveSettings = useCallback(() => {
+        const ag = window.OrgAdminAgent;
+        if (!ag || !ag.saveLlmConfig) {
+            setCfgHint("Агент ещё загружается — подождите секунду.");
+            return;
+        }
+        ag.saveLlmConfig({
+            mode: cfgMode,
+            ragEnabled: cfgRag,
+            endpoint: cfgEndpoint.trim(),
+            apiKey: cfgApiKey.trim(),
+            model: cfgModel.trim() || "gpt-4o-mini",
+            temperature: Number(cfgTemp) || 0.2,
+        });
+        if (refreshAgentStatus)
+            refreshAgentStatus();
+        setCfgHint("Сохранено.");
+        setSettingsOpen(false);
+    }, [cfgMode, cfgRag, cfgEndpoint, cfgApiKey, cfgModel, cfgTemp, refreshAgentStatus]);
+    const resetSettings = useCallback(() => {
+        const ag = window.OrgAdminAgent;
+        if (ag && ag.resetLlmConfig)
+            ag.resetLlmConfig();
+        fillSettingsFromAgent();
+        if (refreshAgentStatus)
+            refreshAgentStatus();
+        setCfgHint("Сброшено к defaults (local-fallback, Plan-and-Execute, RAG on).");
+    }, [fillSettingsFromAgent, refreshAgentStatus]);
     // Drag state
     const [pos, setPos] = useState({ x: 0, y: 0 });
     const dragging = useRef(false);
@@ -2521,13 +2667,15 @@ function AIPanel({ theme, previewMode = false }) {
     };
     const quickActions = [
         "Найди Петрова",
-        "Кто неэффективен?",
-        "Анализ эффективности подразделений",
-        "Оценить потенциал оптимизации",
+        "Покажи span of control",
+        "Найди дубли ролей",
+        "Найди дыры в подчинении",
+        "Сверка cost center",
+        "Администратор",
     ];
     const thinkingPhrases = [
         "Сверяю KPI в SAP ERP HCM…",
-        "Смотрю прогулы и просрочки…",
+        "Подтягиваю регламенты (RAG)…",
         "Сравниваю подразделения…",
         "Собираю карточку сотрудника…",
     ];
@@ -2539,6 +2687,17 @@ function AIPanel({ theme, previewMode = false }) {
         const id = setInterval(() => setThinkIdx((i) => (i + 1) % thinkingPhrases.length), 900);
         return () => clearInterval(id);
     }, [aiLoading]);
+    const fieldStyle = {
+        width: "100%",
+        border: `1px solid ${t.inputBorder}`,
+        borderRadius: 10,
+        padding: "8px 10px",
+        fontSize: 12,
+        background: t.inputBg,
+        color: t.text,
+        marginBottom: 8,
+    };
+    const labelStyle = { display: "block", fontSize: 11, color: t.textSecondary, margin: "6px 0 4px" };
     return (React.createElement("div", { className: "fixed z-50 w-[440px] max-h-[85vh] border rounded-[14px] flex flex-col overflow-hidden ai-alive-panel", style: {
             left: `calc(100vw - 464px - ${orgPanelShift}px + ${pos.x}px)`,
             bottom: `calc(24px - ${pos.y}px)`,
@@ -2556,12 +2715,41 @@ function AIPanel({ theme, previewMode = false }) {
                 React.createElement("div", { className: "text-sm font-bold", style: { color: t.text } }, "AI-ассистент"),
                 React.createElement("div", { className: "text-[10px] flex items-center gap-1.5", style: { color: t.textAccent } },
                     React.createElement("span", { className: "ai-online-dot" }),
-                    aiLoading ? "Думаю…" : "Онлайн · SAP ERP HCM")),
+                    aiLoading ? "Думаю…" : (agentStatus || "Онлайн · SAP ERP HCM"))),
+            React.createElement("button", { onClick: (e) => { e.stopPropagation(); openSettings(!settingsOpen); }, className: "p-1.5 rounded-lg transition-all hover:opacity-80", style: { color: settingsOpen ? S.primary : t.textSecondary, background: t.cardBg }, title: "Настройки агента", "aria-expanded": settingsOpen },
+                React.createElement(Settings, { size: 14 })),
             React.createElement("button", { onClick: (e) => { e.stopPropagation(); clearMessages(); }, className: "p-1.5 rounded-lg transition-all hover:opacity-80", style: { color: t.textSecondary, background: t.cardBg }, title: "Сбросить сессию" },
                 React.createElement(Trash2, { size: 14 })),
             React.createElement("button", { style: { color: t.textSecondary }, className: "hover:opacity-70", onClick: () => setMinimized(!minimized) }, minimized ? React.createElement(ChevronUp, { size: 16 }) : React.createElement(ChevronDown, { size: 16 }))),
         !minimized && (React.createElement(React.Fragment, null,
-            React.createElement("div", { ref: chatRef, className: "overflow-y-auto px-4 py-3 space-y-3", style: { maxHeight: "52vh" } },
+            settingsOpen && React.createElement("div", { className: "absolute inset-x-0 top-[52px] bottom-0 z-10 overflow-auto p-4", style: { background: t.aiPanelBg, borderTop: `1px solid ${t.separatorColor}` } },
+                React.createElement("div", { className: "flex items-center justify-between gap-2 mb-2" },
+                    React.createElement("strong", { style: { color: t.text, fontSize: 14 } }, "Настройки агента"),
+                    React.createElement("button", { type: "button", onClick: () => openSettings(false), className: "p-1.5 rounded-lg", style: { color: t.textSecondary, background: t.cardBg }, title: "Закрыть" },
+                        React.createElement(CloseIcon, { size: 14 }))),
+                React.createElement("p", { style: { fontSize: 12, color: t.textSecondary, marginBottom: 10 } }, "Plan-and-Execute / ReAct · RAG по регламентам HCM · опциональный LLM. Настройки общие с кабинетом администратора."),
+                React.createElement("label", { style: labelStyle }, "Архитектура"),
+                React.createElement("select", { value: cfgMode, onChange: (e) => setCfgMode(e.target.value), style: fieldStyle },
+                    React.createElement("option", { value: "plan-execute" }, "Plan-and-Execute"),
+                    React.createElement("option", { value: "react" }, "ReAct")),
+                React.createElement("label", { style: { ...labelStyle, display: "flex", alignItems: "center", gap: 8, cursor: "pointer" } },
+                    React.createElement("input", { type: "checkbox", checked: cfgRag, onChange: (e) => setCfgRag(e.target.checked) }),
+                    "Подтягивать регламенты (RAG)"),
+                React.createElement("div", { style: { margin: "12px 0 6px", fontSize: 12, fontWeight: 700, color: t.text } }, "Подключение LLM ", React.createElement("span", { style: { fontWeight: 400, color: t.textSecondary } }, "(опционально)")),
+                React.createElement("label", { style: labelStyle }, "Endpoint"),
+                React.createElement("input", { value: cfgEndpoint, onChange: (e) => setCfgEndpoint(e.target.value), placeholder: "https://api.openai.com/v1/chat/completions", style: fieldStyle, autoComplete: "off" }),
+                React.createElement("label", { style: labelStyle }, "API key"),
+                React.createElement("input", { type: "password", value: cfgApiKey, onChange: (e) => setCfgApiKey(e.target.value), placeholder: "sk-…", style: fieldStyle, autoComplete: "off" }),
+                React.createElement("label", { style: labelStyle }, "Model"),
+                React.createElement("input", { value: cfgModel, onChange: (e) => setCfgModel(e.target.value), style: fieldStyle }),
+                React.createElement("label", { style: labelStyle }, "Temperature"),
+                React.createElement("input", { type: "number", step: "0.1", min: "0", max: "2", value: cfgTemp, onChange: (e) => setCfgTemp(e.target.value), style: fieldStyle }),
+                React.createElement("div", { className: "flex gap-2 mt-3" },
+                    React.createElement("button", { type: "button", onClick: saveSettings, className: "px-3 py-2 rounded-lg text-xs font-bold", style: { background: S.primary, color: S.white, border: 0 } }, "Сохранить"),
+                    React.createElement("button", { type: "button", onClick: resetSettings, className: "px-3 py-2 rounded-lg text-xs", style: { background: t.cardBg, color: t.text, border: `1px solid ${t.inputBorder}` } }, "Сбросить")),
+                React.createElement("p", { style: { fontSize: 11, color: t.textSecondary, marginTop: 10 } }, cfgHint),
+                React.createElement("button", { type: "button", onClick: () => { window.location.href = "./admin/index.html"; }, className: "mt-3 w-full px-3 py-2.5 rounded-lg text-xs font-bold", style: { background: "rgba(0,143,149,0.12)", color: S.primary, border: `1px solid rgba(0,143,149,0.25)` } }, "Перейти в раздел «Администратор»")),
+            React.createElement("div", { ref: chatRef, className: "overflow-y-auto px-4 py-3 space-y-3", style: { maxHeight: "52vh", opacity: settingsOpen ? 0.35 : 1, pointerEvents: settingsOpen ? "none" : "auto" } },
                 messages.map((msg, i) => (React.createElement("div", { key: i, className: `flex gap-2 ${msg.role === "user" ? "justify-end" : ""}` },
                     msg.role === "assistant" && (React.createElement("div", { className: "w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5", style: { background: S.primary } },
                         React.createElement(Bot, { size: 12, style: { color: S.white } }))),
@@ -2579,8 +2767,14 @@ function AIPanel({ theme, previewMode = false }) {
                 aiLoading && (React.createElement("div", { className: "flex items-center gap-2 text-xs ai-thinking", style: { color: t.textSecondary } },
                     React.createElement(Loader2, { size: 12, className: "animate-spin" }),
                     thinkingPhrases[thinkIdx]))),
-            React.createElement("div", { className: "px-3 pb-2 flex flex-wrap gap-1.5" }, quickActions.map((action) => (React.createElement("button", { key: action, onClick: () => sendMessage(action), disabled: aiLoading, className: "text-[10px] px-2.5 py-1.5 rounded-full transition-all hover:opacity-80 border", style: { background: t.quickActionBg, borderColor: t.quickActionBorder, color: t.quickActionText } }, action)))),
-            React.createElement("div", { className: "p-3 border-t flex items-center gap-2", style: { borderColor: t.separatorColor, background: t.cardBg, ...glass(t) } },
+            !settingsOpen && React.createElement("div", { className: "px-3 pb-2 flex flex-wrap gap-1.5" }, quickActions.map((action) => (React.createElement("button", { key: action, onClick: () => {
+                    if (action === "Администратор") {
+                        openSettings(true);
+                        return;
+                    }
+                    sendMessage(action);
+                }, disabled: aiLoading, className: "text-[10px] px-2.5 py-1.5 rounded-full transition-all hover:opacity-80 border", style: { background: t.quickActionBg, borderColor: t.quickActionBorder, color: t.quickActionText } }, action)))),
+            !settingsOpen && React.createElement("div", { className: "p-3 border-t flex items-center gap-2", style: { borderColor: t.separatorColor, background: t.cardBg, ...glass(t) } },
                 React.createElement("button", { onClick: handleVoiceToggle, className: "p-2 rounded-lg transition-all", style: { background: voiceListening ? S.danger : t.cardBg, color: voiceListening ? S.white : t.textSecondary, border: `1px solid ${voiceListening ? S.danger : t.inputBorder}` } }, voiceListening ? React.createElement(MicOff, { size: 16 }) : React.createElement(Mic, { size: 16 })),
                 React.createElement("input", { type: "text", value: input, onChange: (e) => setInput(e.target.value), onKeyDown: handleKeyDown, placeholder: voiceListening ? "Говорите..." : "Например: найди Петрова…", className: "flex-1 text-sm px-3 py-2 rounded-lg border focus:outline-none", style: { background: t.inputBg, borderColor: t.inputBorder, color: t.text }, disabled: aiLoading || voiceListening }),
                 React.createElement("button", { onClick: handleSend, disabled: !input.trim() || aiLoading, className: "p-2 rounded-lg transition-all disabled:opacity-30", style: { background: input.trim() ? S.primary : t.cardBg, color: S.white } },
