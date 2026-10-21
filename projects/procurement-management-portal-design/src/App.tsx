@@ -103,6 +103,71 @@ export default function App() {
     setFilters([]);
   }
 
+  // Bridge for overlay AI-assistant (ai-agent.js)
+  useEffect(() => {
+    const api = {
+      goTab: (id: NavTab) => setActiveTab(id),
+      search: (q: string) => {
+        const query = String(q || "").trim();
+        if (!query) return;
+        setGlobalSearch(query);
+        const matchedSup = SUPPLIERS.find(
+          (s) => s.name.toLowerCase().includes(query.toLowerCase()) || s.inn.includes(query),
+        );
+        if (matchedSup) {
+          addFilter("supplier", matchedSup.id, matchedSup.name);
+          setActiveTab("suppliers");
+          setGlobalSearch("");
+          return;
+        }
+        const matchedPO = POS.find((p) => p.id.toLowerCase().includes(query.toLowerCase()));
+        if (matchedPO) {
+          const sup = SUPPLIERS.find((s) => s.id === matchedPO.supplierId);
+          if (sup) setDrawer({ supplier: sup, po: matchedPO });
+          setGlobalSearch("");
+        }
+      },
+      filterOffContract: () => {
+        setFilters((prev) => {
+          if (prev.some((f) => f.kind === "coverage" && f.value === "off")) return prev;
+          return [...prev, { id: "coverage:off", kind: "coverage", value: "off", label: "вне контракта" }];
+        });
+        setActiveTab("suppliers");
+      },
+      clearFilters: () => clearAllFilters(),
+      openAction: () => setModal({ supplier: heroSupplier, po: heroPO }),
+      openHero: () => setDrawer({ supplier: heroSupplier, po: heroPO }),
+      openFirstSupplier: (preferOff?: boolean) => {
+        const list =
+          preferOff === false
+            ? SUPPLIERS
+            : SUPPLIERS.filter((s) => s.offContract).length
+              ? SUPPLIERS.filter((s) => s.offContract)
+              : SUPPLIERS;
+        const first = list[0];
+        if (!first) return;
+        const po = POS.find((p) => p.supplierId === first.id && (preferOff !== false ? p.offContract : true))
+          ?? POS.find((p) => p.supplierId === first.id)
+          ?? null;
+        setActiveTab("suppliers");
+        setDrawer({ supplier: first, po });
+      },
+      getSnapshot: () => ({
+        spendLabel: `Q3 2025 · $${(TOTALS.spend / 1e6).toFixed(1).replace(".", ",")} млн`,
+        offSuppliers: TOTALS.offSuppliers,
+        coverage: Math.round(coverageNow * 100),
+        coverageForecast: Math.round(coverageForecast * 100),
+        actionsOpen: actions.filter((a) => a.status !== "Закрыто").length,
+        meeting: "14.10.2025",
+        benchmarks: "+23 % · позиции выше рынка",
+      }),
+    };
+    (window as unknown as { ProcureAIBridge?: typeof api }).ProcureAIBridge = api;
+    return () => {
+      delete (window as unknown as { ProcureAIBridge?: typeof api }).ProcureAIBridge;
+    };
+  }, [actions, coverageNow, coverageForecast, heroPO, heroSupplier]);
+
   function logAudit(event: string, detail: string, scope: string, actor = "Е. Соколова") {
     const now = new Date();
     const at = `2025-09-26 ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
