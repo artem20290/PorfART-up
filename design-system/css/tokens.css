@@ -1,0 +1,196 @@
+/* ============================================
+   SB design systems — Design Tokens & Styles
+   ============================================ */
+:root {
+  /* Colors */
+  --primary: #008f95;
+  --primary-hover: #007a85;
+  --primary-pressed: #006b74;
+  --accent-orange: #e67e22;
+  --bg: #f2f7f6;
+  --surface: #ffffff;
+  --text-main: #123a45;
+  --text-secondary: #41636a;
+  --border: #d7dee1;
+  --success: #1f8f53;
+  --warning: #e2a326;
+  --danger: #c53b3b;
+  --neutral-bg: #eef2f4;
+
+  /* Typography */
+  --font-sans: 'Inter', 'Roboto', Arial, sans-serif;
+  --fs-h1: 40px;
+  --fs-h2: 24px;
+  --fs-h3: 18px;
+  --fs-body: 16px;
+  --fs-caption: 13px;
+  --fs-label: 14px;
+  --fs-overline: 11px;
+
+  /* Component sizes */
+  --btn-h-xs: 26px;
+  --btn-h-s: 32px;
+  --btn-h-m: 40px;
+  --btn-h-l: 48px;
+  --input-h: 40px;
+  --icon-sm: 16px;
+  --icon-md: 20px;
+  --avatar-sm: 32px;
+  --avatar-lg: 48px;
+
+  /* Motion */
+  --duration-fast: 150ms;
+  --duration: 250ms;
+  --duration-slow: 400ms;
+  --easing: cubic-bezier(0.4, 0, 0.2, 1);
+  --anim-fade-in: motion-fade-in var(--duration) var(--easing);
+  --anim-fade-out: motion-fade-out var(--duration) var(--easing);
+  --anim-saturate-in: motion-saturate-in var(--duration-slow) var(--easing);
+  --anim-saturate-out: motion-saturate-out var(--duration-slow) var(--easing);
+
+  /* Extra */
+  --primary-light: rgba(0, 143, 149, 0.08);
+
+  /* Spacing */
+  --sp-1: 8px;
+  --sp-2: 12px;
+  --sp-3: 16px;
+  --sp-4: 20px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+
+  /* Radii */
+  --r-none: 0;
+  --r-xs: 4px;
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-xl: 20px;
+  --r-2xl: 28px;
+  --r-pill: 100px;
+  --r-full: 50%;
+
+  /* Border widths & styles */
+  --border-w: 1px;
+  --border-w-thick: 2px;
+  --border-default: 1px solid var(--border);
+  --border-strong: 2px solid #b8c4c8;
+  --border-primary: 1px solid var(--primary);
+  --border-dashed: 1px dashed var(--border);
+  --border-focus: 0 0 0 3px rgba(0, 143, 149, 0.25);
+
+  /* Shadow */
+  --shadow-none: none;
+  --shadow-xs: 0 1px 2px rgba(24, 34, 40, 0.05);
+  --shadow-sm: 0 2px 8px rgba(24, 34, 40, 0.06);
+  --shadow-card: 0 8px 20px rgba(24, 34, 40, 0.07);
+  --shadow-hover: 0 12px 28px rgba(24, 34, 40, 0.12);
+  --shadow-lg: 0 16px 40px rgba(24, 34, 40, 0.15);
+  --shadow-inner: inset 0 2px 4px rgba(24, 34, 40, 0.06);
+  --shadow-primary: 0 8px 24px rgba(0, 143, 149, 0.25);
+
+  /* Scrollbars */
+  --scrollbar-size: 6px;
+  --scrollbar-size-sm: 5px;
+  --scrollbar-track: rgba(0, 143, 149, 0.06);
+  --scrollbar-track-dark: rgba(255, 255, 255, 0.05);
+  --scrollbar-thumb: rgba(0, 143, 149, 0.32);
+  --scrollbar-thumb-hover: var(--primary);
+  --scrollbar-thumb-dark: rgba(0, 143, 149, 0.55);
+  --scrollbar-thumb-dark-hover: #00a8af;
+
+  /* Container */
+  --container: 1100px;
+
+  /* Brand logo */
+  --logo-path: url('logo-mark.png');
+  --logo-h: 28px;
+  --logo-h-s: 22px;
+  --logo-h-l: 32px;
+
+  /* Theme variables (will be overridden in dark/high-contrast) */
+  --theme-bg: #f2f7f6;
+  --theme-surface: #ffffff;
+  --theme-text-main: #123a45;
+  --theme-text-secondary: #41636a;
+  --theme-border: #d7dee1;
+  --theme-neutral-bg: #eef2f4;
+}
+
+[data-theme="dark"] {
+  --theme-bg: #0b2a30;
+  --theme-surface: #12343b;
+  --theme-text-main: #e0ecf0;
+  --theme-text-secondary: #8ba8b0;
+  --theme-border: #2a4a54;
+  --theme-neutral-bg: #1a3540;
+  --bg: var(--theme-bg);
+  --surface: var(--theme-surface);
+  --text-main: var(--theme-text-main);
+  --text-secondary: var(--theme-text-secondary);
+  --border: var(--theme-border);
+  --neutral-bg: var(--theme-neutral-bg);
+  --primary-light: rgba(0, 143, 149, 0.18);
+  --border-strong: 2px solid #2a5a64;
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
+  --shadow-card: 0 8px 20px rgba(0, 0, 0, 0.4);
+  --shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.55);
+  --shadow-inner: inset 0 2px 4px rgba(0, 0, 0, 0.35);
+  --shadow-primary: 0 8px 24px rgba(0, 143, 149, 0.35);
+  --border-focus: 0 0 0 3px rgba(0, 143, 149, 0.45);
+}
+
+[data-theme="high-contrast"] {
+  --theme-bg: #000;
+  --theme-surface: #111;
+  --theme-text-main: #fff;
+  --theme-text-secondary: #ccc;
+  --theme-border: #fff;
+  --theme-neutral-bg: #222;
+  --bg: var(--theme-bg);
+  --surface: var(--theme-surface);
+  --text-main: var(--theme-text-main);
+  --text-secondary: var(--theme-text-secondary);
+  --border: var(--theme-border);
+  --neutral-bg: var(--theme-neutral-bg);
+  --primary-light: rgba(0, 143, 149, 0.35);
+  --border-strong: 2px solid #fff;
+  --shadow-none: none;
+  --shadow-xs: 0 0 0 1px #fff;
+  --shadow-sm: 0 0 0 2px #fff;
+  --shadow-card: 0 0 0 2px #fff;
+  --shadow-hover: 0 0 0 4px #fff;
+  --shadow-lg: 0 0 0 4px #fff;
+  --shadow-inner: inset 0 0 0 2px #fff;
+  --shadow-primary: 0 0 0 3px #fff;
+  --border-focus: 0 0 0 4px #fff;
+}
+
+.nav-logo-img,
+.brand-logo {
+  display: block;
+  height: var(--logo-h);
+  width: auto;
+  max-width: 100%;
+  flex-shrink: 0;
+  object-fit: contain;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  color: var(--theme-text-main);
+  background: var(--theme-bg);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.app {
+  background: var(--theme-bg);
+}

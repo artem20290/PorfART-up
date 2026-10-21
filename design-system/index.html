@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SB design systems — Draft Showcase</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;500;600;700;900&family=Roboto:wght@100;300;400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/tokens.css" />
+<link rel="stylesheet" href="css/app.css?v=mobile-1" />
+<link rel="stylesheet" href="css/components.css?v=mobile-1" />
+<link rel="stylesheet" href="css/components-medium.css" />
+<link rel="stylesheet" href="css/components-high.css" />
+<link rel="stylesheet" href="css/components-low.css" />
+<link rel="stylesheet" href="css/components-upgrades.css" />
+<link rel="stylesheet" href="css/components-dark.css" />
+<link rel="stylesheet" href="css/templates.css" />
+<link rel="stylesheet" href="css/tokens-playground.css" />
+<link rel="stylesheet" href="css/agent.css?v=18" />
+</head>
+<body>
+
+<button class="sidebar-toggle" id="sidebarToggle" aria-label="Меню"><span class="bi" data-icon="menu" data-icon-size="20"></span></button>
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-inner">
+      <div class="sidebar-tile sidebar-tile-brand">
+        <div class="sidebar-brand">
+          <img src="logo-mark.png" alt="SB" class="brand-mark" width="30" height="30" />
+          <div class="brand-name">SB design systems</div>
+        </div>
+      </div>
+
+      <div class="sidebar-tile sidebar-tile-search">
+        <div class="sidebar-search">
+          <input id="sidebarSearchInput" type="search" placeholder="Поиск компонента..." autocomplete="off" />
+          <div class="sidebar-search-results" id="sidebarSearchResults"></div>
+        </div>
+      </div>
+
+      <div class="sidebar-tile sidebar-tile-tools">
+        <div class="sidebar-tools-label">Тема</div>
+        <div id="theme-switcher" class="sidebar-theme-switcher">
+          <button data-theme-mode="light" class="theme-btn active"><span class="bi" data-icon="sun" data-icon-size="16"></span></button>
+          <button data-theme-mode="dark" class="theme-btn"><span class="bi" data-icon="moon" data-icon-size="16"></span></button>
+        </div>
+        <button id="download-kit" class="sidebar-link sidebar-download"><span class="bi" data-icon="download" data-icon-size="16"></span> Скачать ресурсы</button>
+      </div>
+
+      <nav class="sidebar-tile sidebar-tile-nav sidebar-nav" id="sidebarNav"></nav>
+
+      <div class="sidebar-tile sidebar-tile-footer">
+        <div class="sidebar-footer">© 2026 · Vanilla JS · Без фреймворков</div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="content" id="pageContent"></main>
+</div>
+
+<div class="ai-prompt-backdrop" id="aiPromptBackdrop" onclick="if (event.target === this) window.closeAiPrompt();">
+  <div class="ai-prompt-modal" role="dialog" aria-modal="true" aria-labelledby="aiPromptTitle" onclick="event.stopPropagation();">
+    <div class="ai-prompt-header">
+      <h3 id="aiPromptTitle">Промт для ИИ-агента</h3>
+      <button class="ai-prompt-close" id="aiPromptClose" type="button" aria-label="Закрыть" onclick="event.preventDefault(); event.stopPropagation(); window.closeAiPrompt();"><span class="bi" data-icon="close" data-icon-size="20"></span></button>
+    </div>
+    <div class="ai-prompt-body">
+      <p class="ai-prompt-desc" id="aiPromptDesc">Используйте этот промт, чтобы воссоздать компонент с помощью ИИ-агента при разработке интерфейса.</p>
+      <div class="ai-prompt-block">
+        <div class="ai-prompt-label">Промт</div>
+        <pre class="ai-prompt-code" id="aiPromptCode"></pre>
+      </div>
+    </div>
+    <div class="ai-prompt-footer">
+      <button class="ai-prompt-copy" id="aiPromptCopy" type="button" onclick="event.preventDefault(); event.stopPropagation(); window.copyAiPrompt();"><span class="bi" data-icon="copy" data-icon-size="16"></span> Скопировать промт</button>
+    </div>
+  </div>
+</div>
+
+<div class="ai-prompt-backdrop" id="codeModalBackdrop" onclick="if (event.target === this) window.closeCodeModal();">
+  <div class="ai-prompt-modal" role="dialog" aria-modal="true" aria-labelledby="codeModalTitle" onclick="event.stopPropagation();">
+    <div class="ai-prompt-header">
+      <h3 id="codeModalTitle">Код компонента</h3>
+      <button class="ai-prompt-close" type="button" onclick="event.preventDefault(); event.stopPropagation(); window.closeCodeModal();"><span class="bi" data-icon="close" data-icon-size="20"></span></button>
+    </div>
+    <div class="ai-prompt-body">
+      <div class="code-tabs">
+        <button class="code-tab active" data-code-tab="html">HTML</button>
+        <button class="code-tab" data-code-tab="react">React</button>
+      </div>
+      <pre class="ai-prompt-code" id="codeModalCode"></pre>
+    </div>
+    <div class="ai-prompt-footer">
+      <button class="ai-prompt-copy" id="codeModalCopy" type="button"><span class="bi" data-icon="copy" data-icon-size="16"></span> Скопировать код</button>
+    </div>
+  </div>
+</div>
+
+<div class="command-backdrop" id="commandPalette">
+  <div class="command-modal">
+    <input class="command-input" id="commandInput" placeholder="Поиск компонентов, props, промтов..." />
+    <div class="command-results" id="commandResults"></div>
+  </div>
+</div>
+
+<div class="site-toast" id="siteToast">Готово</div>
+<button class="back-to-top" id="backToTop" type="button" aria-label="Наверх"><span class="bi" data-icon="arrow-up" data-icon-size="20"></span></button>
+
+<!-- ============ TEMPLATE: Token group ============ -->
+<template id="tpl-token-group">
+  <div class="token-group">
+    <h3 class="tg-title"></h3>
+    <div class="tg-body"></div>
+  </div>
+</template>
+
+<!-- ============ TEMPLATE: Component card ============ -->
+<template id="tpl-component">
+  <article class="comp-card">
+    <div class="comp-head">
+      <h3 class="comp-title"></h3>
+      <span class="comp-cat"></span>
+    </div>
+    <div class="comp-desc"></div>
+    <div class="comp-demo"></div>
+    <div class="comp-props"></div>
+    <div class="comp-meta"></div>
+  </article>
+</template>
+
+<script src="data/tokens.js"></script>
+<script src="data/icons.js"></script>
+<script src="data/components.js"></script>
+<script src="data/components-medium.js"></script>
+<script src="data/components-high.js"></script>
+<script src="data/components-low.js"></script>
+<script src="data/components-upgrades.js"></script>
+<script src="data/component-css.js"></script>
+<script src="data/templates.js?v=3"></script>
+<script src="app/config.js"></script>
+<script src="app/agent/engine.js?v=21"></script>
+<script src="app/agent/eval.js?v=14"></script>
+<script src="app/render.js"></script>
+<script src="app/pages.js?v=22"></script>
+<script src="app/router.js"></script>
+<script src="app/widgets/interactive.js"></script>
+<script src="app/widgets/medium-priority.js"></script>
+<script src="app/widgets/high-priority.js"></script>
+<script src="app/widgets/low-priority.js"></script>
+<script src="app/widgets/upgrades.js"></script>
+<script src="app/widgets/templates.js"></script>
+<script src="app/widgets/live-demos.js"></script>
+<script src="app/widgets/iridescence.js"></script>
+<script src="app/widgets/icons.js"></script>
+<script src="app/reinit.js"></script>
+<script src="app/bootstrap.js"></script>
+
+</body>
+</html>
